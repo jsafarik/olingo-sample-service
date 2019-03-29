@@ -35,7 +35,7 @@ public class Category extends TripPinEntity {
     }
 
     @Override
-    public Entity getEntity() {
+    public Entity createEntity() {
 
         Entity entity = new Entity();
 

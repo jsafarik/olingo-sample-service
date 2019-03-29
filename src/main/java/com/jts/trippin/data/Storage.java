@@ -30,6 +30,7 @@ import java.util.UUID;
 import com.jts.trippin.data.model.Advertisement;
 import com.jts.trippin.data.model.Category;
 import com.jts.trippin.data.model.Product;
+import com.jts.trippin.data.model.ProductSet;
 import com.jts.trippin.service.DemoEdmProvider;
 import com.jts.trippin.util.Util;
 import org.apache.olingo.commons.api.Constants;
@@ -44,7 +45,6 @@ import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.edm.EdmKeyPropertyRef;
 import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
-import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.server.api.OData;
@@ -68,7 +68,7 @@ public class Storage {
         this.edm = edm;
         manager = new TransactionalEntityManager(edm);
 
-        final List<Entity> productList = manager.getEntityCollection(Product.ES_NAME);
+        final List<Entity> productList = manager.getEntityCollection(ProductSet.NAME);
 
         // creating some sample data
         initProductSampleData();
@@ -148,7 +148,7 @@ public class Storage {
         initProductSampleData();
         initCategorySampleData();
 
-        final List<Entity> productList = manager.getEntityCollection(Product.ES_NAME);
+        final List<Entity> productList = manager.getEntityCollection(ProductSet.NAME);
         final List<Entity> categoryList = manager.getEntityCollection(Category.ES_NAME);
 
         // Truncate the lists
@@ -169,8 +169,8 @@ public class Storage {
 
     public EntityCollection readEntitySetData(EdmEntitySet edmEntitySet) throws ODataApplicationException {
 
-        if (edmEntitySet.getName().equals(Product.ES_NAME)) {
-            return getEntityCollection(manager.getEntityCollection(Product.ES_NAME));
+        if (edmEntitySet.getName().equals(ProductSet.NAME)) {
+            return getEntityCollection(manager.getEntityCollection(ProductSet.NAME));
         } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
             return getEntityCollection(manager.getEntityCollection(Category.ES_NAME));
         } else if (edmEntitySet.getName().equals(Advertisement.ES_NAME)) {
@@ -185,8 +185,8 @@ public class Storage {
 
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-        if (edmEntitySet.getName().equals(Product.ES_NAME)) {
-            return getEntity(edmEntityType, keyParams, manager.getEntityCollection(Product.ES_NAME));
+        if (edmEntitySet.getName().equals(ProductSet.NAME)) {
+            return getEntity(edmEntityType, keyParams, manager.getEntityCollection(ProductSet.NAME));
         } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
             return getEntity(edmEntityType, keyParams, manager.getEntityCollection(Category.ES_NAME));
         } else if (edmEntitySet.getName().equals(Advertisement.ES_NAME)) {
@@ -226,9 +226,9 @@ public class Storage {
 
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-        if (edmEntitySet.getName().equals(Product.ES_NAME)) {
+        if (edmEntitySet.getName().equals(ProductSet.NAME)) {
             return createEntity(edmEntitySet, edmEntityType, entityToCreate,
-                    manager.getEntityCollection(Product.ES_NAME), rawServiceUri);
+                    manager.getEntityCollection(ProductSet.NAME), rawServiceUri);
         } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
             return createEntity(edmEntitySet, edmEntityType, entityToCreate,
                     manager.getEntityCollection(Category.ES_NAME), rawServiceUri);
@@ -245,9 +245,9 @@ public class Storage {
 
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-        if (edmEntitySet.getName().equals(Product.ES_NAME)) {
+        if (edmEntitySet.getName().equals(ProductSet.NAME)) {
             updateEntity(edmEntityType, keyParams, updateEntity, httpMethod,
-                    manager.getEntityCollection(Product.ES_NAME));
+                    manager.getEntityCollection(ProductSet.NAME));
         } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
             updateEntity(edmEntityType, keyParams, updateEntity, httpMethod,
                     manager.getEntityCollection(Category.ES_NAME));
@@ -262,8 +262,8 @@ public class Storage {
 
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-        if (edmEntitySet.getName().equals(Product.ES_NAME)) {
-            deleteEntity(edmEntityType, keyParams, manager.getEntityCollection(Product.ES_NAME));
+        if (edmEntitySet.getName().equals(ProductSet.NAME)) {
+            deleteEntity(edmEntityType, keyParams, manager.getEntityCollection(ProductSet.NAME));
         } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
             deleteEntity(edmEntityType, keyParams, manager.getEntityCollection(Category.ES_NAME));
         } else if (edmEntitySet.getName().equals(Advertisement.ES_NAME)) {
@@ -482,32 +482,32 @@ public class Storage {
 
 
     private void initProductSampleData() {
-        final List<Entity> productList = manager.getEntityCollection(Product.ES_NAME);
+        final List<Entity> productList = manager.getEntityCollection(ProductSet.NAME);
 
         productList.add(new Product(0, "Notebook Basic 15",
-                "Notebook Basic, 1.7GHz - 15 XGA - 1024MB DDR2 SDRAM - 40GB").getEntity());
+                "Notebook Basic, 1.7GHz - 15 XGA - 1024MB DDR2 SDRAM - 40GB").createEntity());
 
         productList.add(new Product(1, "Notebook Professional 17",
-                "Notebook Professional, 2.8GHz - 15 XGA - 8GB DDR3 RAM - 500GB").getEntity());
+                "Notebook Professional, 2.8GHz - 15 XGA - 8GB DDR3 RAM - 500GB").createEntity());
 
         productList.add(new Product(2, "1UMTS PDA",
-                "Ultrafast 3G UMTS/HSDPA Pocket PC, supports GSM network").getEntity());
+                "Ultrafast 3G UMTS/HSDPA Pocket PC, supports GSM network").createEntity());
 
         productList.add(new Product(3, "Comfort Easy",
-                "32 GB Digital Assitant with high-resolution color screen").getEntity());
+                "32 GB Digital Assitant with high-resolution color screen").createEntity());
 
         productList.add(new Product(4, "Ergo Screen",
-                "19 Optimum Resolution 1024 x 768 @ 85Hz, resolution 1280 x 960").getEntity());
+                "19 Optimum Resolution 1024 x 768 @ 85Hz, resolution 1280 x 960").createEntity());
 
         productList.add(new Product(5, "Flat Basic",
-                "Optimum Hi-Resolution max. 1600 x 1200 @ 85Hz, Dot Pitch: 0.24mm").getEntity());
+                "Optimum Hi-Resolution max. 1600 x 1200 @ 85Hz, Dot Pitch: 0.24mm").createEntity());
     }
 
     private void initCategorySampleData() {
         final List<Entity> categoryList = manager.getEntityCollection(Category.ES_NAME);
-        categoryList.add(new Category(0, "Notebooks").getEntity());
-        categoryList.add(new Category(1, "Organizers").getEntity());
-        categoryList.add(new Category(2, "Monitors").getEntity());
+        categoryList.add(new Category(0, "Notebooks").createEntity());
+        categoryList.add(new Category(1, "Organizers").createEntity());
+        categoryList.add(new Category(2, "Monitors").createEntity());
     }
 
     private void initAdvertisementSampleData() {
@@ -516,16 +516,16 @@ public class Storage {
         advertisements.add(new Advertisement(UUID.fromString("f89dee73-af9f-4cd4-b330-db93c25ff3c7"),
                 "Old School Lemonade Store, Retro Style",
                 Timestamp.valueOf("2012-11-07 00:00:00"),
-                "Super content".getBytes()).getEntity());
+                "Super content".getBytes()).createEntity());
 
         advertisements.add(new Advertisement(UUID.fromString("db2d2186-1c29-4d1e-88ef-a127f521b9c67"),
                 "Early morning start, need coffee",
                 Timestamp.valueOf("2000-02-29 00:00:00"),
-                "Super content2".getBytes()).getEntity());
+                "Super content2".getBytes()).createEntity());
     }
 
     private void linkProductsAndCategories(final int numberOfProducts) {
-        final List<Entity> productList = manager.getEntityCollection(Product.ES_NAME);
+        final List<Entity> productList = manager.getEntityCollection(ProductSet.NAME);
         final List<Entity> categoryList = manager.getEntityCollection(Category.ES_NAME);
 
         if (numberOfProducts >= 1) {
@@ -582,8 +582,8 @@ public class Storage {
     private String getEntitySetName(Entity entity) {
         if (Category.ET_FQN.getFullQualifiedNameAsString().equals(entity.getType())) {
             return Category.ES_NAME;
-        } else if (Product.ET_FQN.getFullQualifiedNameAsString().equals(entity.getType())) {
-            return Product.ES_NAME;
+        } else if (Product.FQN.getFullQualifiedNameAsString().equals(entity.getType())) {
+            return ProductSet.NAME;
         } else if (Advertisement.ET_FQN.getFullQualifiedNameAsString().equals(entity.getType())) {
             return Advertisement.ES_NAME;
         }

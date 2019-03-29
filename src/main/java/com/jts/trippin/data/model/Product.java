@@ -10,10 +10,8 @@ import org.apache.olingo.commons.api.edm.FullQualifiedName;
 @AllArgsConstructor
 public class Product extends TripPinEntity {
 
-    public final static FullQualifiedName ET_FQN
+    public final static FullQualifiedName FQN
             = new FullQualifiedName(DemoEdmProvider.NAMESPACE, Product.class.getSimpleName());
-
-    public static final String ES_NAME = "Products";
 
     private long id;
 
@@ -22,7 +20,7 @@ public class Product extends TripPinEntity {
     private String description;
 
     @Override
-    public Entity getEntity() {
+    public Entity createEntity() {
 
         Entity entity = new Entity();
 
@@ -30,7 +28,7 @@ public class Product extends TripPinEntity {
         entity.addProperty(new Property(null, "Name", ValueType.PRIMITIVE, this.name));
         entity.addProperty(new Property(null, "Description", ValueType.PRIMITIVE, this.description));
 
-        entity.setType(ET_FQN.getFullQualifiedNameAsString());
+        entity.setType(FQN.getFullQualifiedNameAsString());
         entity.setId(Util.createId(this));
 
         return entity;
@@ -38,12 +36,12 @@ public class Product extends TripPinEntity {
 
     @Override
     public FullQualifiedName getEtFqn() {
-        return ET_FQN;
+        return FQN;
     }
 
     @Override
     public String getEsName() {
-        return ES_NAME;
+        return ProductSet.NAME;
     }
 
     @Override

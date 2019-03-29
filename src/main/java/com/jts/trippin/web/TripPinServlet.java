@@ -27,13 +27,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.jts.trippin.service.DemoActionProcessor;
-import com.jts.trippin.service.DemoEdmProvider;
-import com.jts.trippin.service.DemoEntityCollectionProcessor;
-import com.jts.trippin.service.DemoPrimitiveProcessor;
+import com.jts.trippin.service.*;
 import com.jts.trippin.data.Storage;
-import com.jts.trippin.service.DemoBatchProcessor;
-import com.jts.trippin.service.DemoEntityProcessor;
 
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataHttpHandler;
@@ -68,6 +63,7 @@ public class TripPinServlet extends HttpServlet {
       handler.register(new DemoPrimitiveProcessor(storage));
       handler.register(new DemoActionProcessor(storage));
       handler.register(new DemoBatchProcessor(storage));
+      handler.register(new CustomDefaultProcessor());
 
       // let the handler do the work
       handler.process(req, resp);

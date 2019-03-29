@@ -8,6 +8,6 @@ public abstract class TripPinEntity {
     public abstract FullQualifiedName getEtFqn();
     public abstract String getEsName();
     public abstract Object getId();
-    public abstract Entity getEntity();
+    public abstract Entity createEntity();
 
 }

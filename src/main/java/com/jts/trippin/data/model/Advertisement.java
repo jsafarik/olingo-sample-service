@@ -47,7 +47,7 @@ public class Advertisement extends TripPinEntity {
     }
 
     @Override
-    public Entity getEntity() {
+    public Entity createEntity() {
         Entity entity = new Entity();
         entity.setType(ET_FQN.getFullQualifiedNameAsString());
         entity.addProperty(new Property(null, "ID", ValueType.PRIMITIVE,

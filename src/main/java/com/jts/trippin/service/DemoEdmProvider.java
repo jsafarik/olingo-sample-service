@@ -23,9 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.jts.trippin.data.model.Advertisement;
-import com.jts.trippin.data.model.Category;
-import com.jts.trippin.data.model.Product;
+import com.jts.trippin.data.model.*;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmProvider;
@@ -49,9 +47,6 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     // Service Namespace
     public static final String NAMESPACE = "OData.TripPin";
-
-    // EDM Container
-    public static final FullQualifiedName CONTAINER = new FullQualifiedName(NAMESPACE, "Container");
 
     // Entity Set Names
     public static final String NAV_TO_CATEGORY = "Category";
@@ -94,7 +89,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public CsdlActionImport getActionImport(final FullQualifiedName entityContainer, final String actionImportName) {
-        if (entityContainer.equals(CONTAINER)) {
+        if (entityContainer.equals(EntityContainer.CONTAINER)) {
             if (actionImportName.equals(ACTION_RESET_FQN.getName())) {
                 return new CsdlActionImport()
                         .setName(actionImportName)
@@ -137,7 +132,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public CsdlFunctionImport getFunctionImport(FullQualifiedName entityContainer, String functionImportName) {
-        if (entityContainer.equals(CONTAINER)) {
+        if (entityContainer.equals(EntityContainer.CONTAINER)) {
             if (functionImportName.equals(FUNCTION_COUNT_CATEGORIES_FQN.getName())) {
                 return new CsdlFunctionImport()
                         .setName(functionImportName)
@@ -156,7 +151,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
         // this method is called for each EntityType that are configured in the Schema
         CsdlEntityType entityType = null;
 
-        if (entityTypeName.equals(Product.ET_FQN)) {
+        if (entityTypeName.equals(Product.FQN)) {
             // create EntityType properties
             CsdlProperty id = new CsdlProperty().setName("ID")
                     .setType(EdmPrimitiveTypeKind.Int32.getFullQualifiedName());
@@ -177,7 +172,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
             // configure EntityType
             entityType = new CsdlEntityType();
-            entityType.setName(Product.ET_FQN.getName());
+            entityType.setName(Product.FQN.getName());
             entityType.setProperties(Arrays.asList(id, name, description));
             entityType.setKey(Arrays.asList(propertyRef));
             entityType.setNavigationProperties(navPropList);
@@ -195,7 +190,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
             // navigation property: one-to-many
             CsdlNavigationProperty navProp = new CsdlNavigationProperty().setName(NAV_TO_PRODUCTS)
-                    .setType(Product.ET_FQN).setCollection(true).setPartner("Category");
+                    .setType(Product.FQN).setCollection(true).setPartner("Category");
             List<CsdlNavigationProperty> navPropList = new ArrayList<>();
             navPropList.add(navProp);
 
@@ -231,19 +226,19 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
         CsdlEntitySet entitySet = null;
 
-        if (entityContainer.equals(CONTAINER)) {
+        if (entityContainer.equals(EntityContainer.CONTAINER)) {
 
-            if (entitySetName.equals(Product.ES_NAME)) {
+            if (entitySetName.equals(ProductSet.NAME)) {
 
                 entitySet = new CsdlEntitySet();
-                entitySet.setName(Product.ES_NAME);
-                entitySet.setType(Product.ET_FQN);
+                entitySet.setName(ProductSet.NAME);
+                entitySet.setType(Product.FQN);
 
                 // navigation
                 CsdlNavigationPropertyBinding navPropBinding = new CsdlNavigationPropertyBinding();
                 navPropBinding.setTarget("Categories"); // the target entity set, where the navigation property points to
                 navPropBinding.setPath("Category"); // the path from entity type to navigation property
-                List<CsdlNavigationPropertyBinding> navPropBindingList = new ArrayList<CsdlNavigationPropertyBinding>();
+                List<CsdlNavigationPropertyBinding> navPropBindingList = new ArrayList<>();
                 navPropBindingList.add(navPropBinding);
                 entitySet.setNavigationPropertyBindings(navPropBindingList);
 
@@ -275,9 +270,9 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
         // This method is invoked when displaying the service document at
         // e.g. http://localhost:8080/DemoService/DemoService.svc
-        if (entityContainerName == null || entityContainerName.equals(CONTAINER)) {
+        if (entityContainerName == null || entityContainerName.equals(EntityContainer.CONTAINER)) {
             CsdlEntityContainerInfo entityContainerInfo = new CsdlEntityContainerInfo();
-            entityContainerInfo.setContainerName(CONTAINER);
+            entityContainerInfo.setContainerName(EntityContainer.CONTAINER);
             return entityContainerInfo;
         }
 
@@ -292,7 +287,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
         // add EntityTypes
         List<CsdlEntityType> entityTypes = new ArrayList<>();
-        entityTypes.add(getEntityType(Product.ET_FQN));
+        entityTypes.add(getEntityType(Product.FQN));
         entityTypes.add(getEntityType(Category.ET_FQN));
         entityTypes.add(getEntityType(Advertisement.ET_FQN));
         schema.setEntityTypes(entityTypes);
@@ -320,21 +315,21 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
         // create EntitySets
         List<CsdlEntitySet> entitySets = new ArrayList<>();
-        entitySets.add(getEntitySet(CONTAINER, Product.ES_NAME));
-        entitySets.add(getEntitySet(CONTAINER, Category.ES_NAME));
-        entitySets.add(getEntitySet(CONTAINER, Advertisement.ES_NAME));
+        entitySets.add(getEntitySet(EntityContainer.CONTAINER, ProductSet.NAME));
+        entitySets.add(getEntitySet(EntityContainer.CONTAINER, Category.ES_NAME));
+        entitySets.add(getEntitySet(EntityContainer.CONTAINER, Advertisement.ES_NAME));
 
         // Create function imports
         List<CsdlFunctionImport> functionImports = new ArrayList<>();
-        functionImports.add(getFunctionImport(CONTAINER, FUNCTION_COUNT_CATEGORIES_FQN.getName()));
+        functionImports.add(getFunctionImport(EntityContainer.CONTAINER, FUNCTION_COUNT_CATEGORIES_FQN.getName()));
 
         // Create action imports
         List<CsdlActionImport> actionImports = new ArrayList<>();
-        actionImports.add(getActionImport(CONTAINER, ACTION_RESET_FQN.getName()));
+        actionImports.add(getActionImport(EntityContainer.CONTAINER, ACTION_RESET_FQN.getName()));
 
         // create EntityContainer
         CsdlEntityContainer entityContainer = new CsdlEntityContainer();
-        entityContainer.setName(CONTAINER.getName());
+        entityContainer.setName(EntityContainer.CONTAINER.getName());
         entityContainer.setActionImports(actionImports);
         entityContainer.setFunctionImports(functionImports);
         entityContainer.setEntitySets(entitySets);
