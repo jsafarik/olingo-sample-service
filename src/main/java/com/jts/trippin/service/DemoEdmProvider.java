@@ -24,6 +24,10 @@ import java.util.Collections;
 import java.util.List;
 
 import com.jts.trippin.data.model.*;
+import com.jts.trippin.data.model.entityset.Products;
+import com.jts.trippin.data.model.entityset.entity.Advertisement;
+import com.jts.trippin.data.model.entityset.entity.Category;
+import com.jts.trippin.data.model.entityset.entity.Product;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmProvider;
@@ -44,6 +48,8 @@ import org.apache.olingo.commons.api.edm.provider.CsdlReturnType;
 import org.apache.olingo.commons.api.edm.provider.CsdlSchema;
 
 public class DemoEdmProvider extends CsdlAbstractEdmProvider {
+
+    private Products products = new Products();
 
     // Service Namespace
     public static final String NAMESPACE = "OData.TripPin";
@@ -228,20 +234,8 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
         if (entityContainer.equals(EntityContainer.CONTAINER)) {
 
-            if (entitySetName.equals(ProductSet.NAME)) {
-
-                entitySet = new CsdlEntitySet();
-                entitySet.setName(ProductSet.NAME);
-                entitySet.setType(Product.FQN);
-
-                // navigation
-                CsdlNavigationPropertyBinding navPropBinding = new CsdlNavigationPropertyBinding();
-                navPropBinding.setTarget("Categories"); // the target entity set, where the navigation property points to
-                navPropBinding.setPath("Category"); // the path from entity type to navigation property
-                List<CsdlNavigationPropertyBinding> navPropBindingList = new ArrayList<>();
-                navPropBindingList.add(navPropBinding);
-                entitySet.setNavigationPropertyBindings(navPropBindingList);
-
+            if (entitySetName.equals(Products.NAME)) {
+                entitySet = products.getEntitySet();
             } else if (entitySetName.equals(Category.ES_NAME)) {
 
                 entitySet = new CsdlEntitySet();
@@ -315,7 +309,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
         // create EntitySets
         List<CsdlEntitySet> entitySets = new ArrayList<>();
-        entitySets.add(getEntitySet(EntityContainer.CONTAINER, ProductSet.NAME));
+        entitySets.add(getEntitySet(EntityContainer.CONTAINER, Products.NAME));
         entitySets.add(getEntitySet(EntityContainer.CONTAINER, Category.ES_NAME));
         entitySets.add(getEntitySet(EntityContainer.CONTAINER, Advertisement.ES_NAME));
 

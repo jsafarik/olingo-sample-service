@@ -30,24 +30,20 @@ import javax.servlet.http.HttpSession;
 import com.jts.trippin.service.*;
 import com.jts.trippin.data.Storage;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataHttpHandler;
 import org.apache.olingo.server.api.ServiceMetadata;
-import org.apache.olingo.commons.api.edmx.EdmxReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class TripPinServlet extends HttpServlet {
 
-  private static final long serialVersionUID = 1L;
-  private static final Logger LOG = LoggerFactory.getLogger(TripPinServlet.class);
-
+  private static final int serialVersionUID = 1;
 
   @Override
-  protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
     OData odata = OData.newInstance();
-    ServiceMetadata edm = odata.createServiceMetadata(new DemoEdmProvider(), new ArrayList<EdmxReference>());
-    
+    ServiceMetadata edm = odata.createServiceMetadata(new DemoEdmProvider(), new ArrayList<>());
     try {
       HttpSession session = req.getSession(true);
       Storage storage = (Storage) session.getAttribute(Storage.class.getName());
@@ -68,7 +64,7 @@ public class TripPinServlet extends HttpServlet {
       // let the handler do the work
       handler.process(req, resp);
     } catch (RuntimeException e) {
-      LOG.error("Server Error occurred in ExampleServlet", e);
+      log.error("Server Error occurred in ExampleServlet", e);
       throw new ServletException(e);
     }
 

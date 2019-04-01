@@ -7,11 +7,11 @@ import java.net.URISyntaxException;
 
 public class Util {
 
-    public static URI createId(TripPinEntity entity) {
+    public static URI createId(AbstractEntity entity) {
         return createId(entity, null);
     }
 
-    public static URI createId(TripPinEntity entity, String navigationName) {
+    public static URI createId(AbstractEntity entity, String navigationName) {
         try {
             StringBuilder sb = new StringBuilder(entity.getEsName()).append("(");
             sb.append(entity.getId()).append(")");

@@ -1,16 +1,17 @@
-package com.jts.trippin.data.model;
+package com.jts.trippin.data.model.entityset.entity;
 
+import com.jts.trippin.data.model.AbstractEntity;
+import com.jts.trippin.data.model.Util;
 import com.jts.trippin.service.DemoEdmProvider;
 import lombok.AllArgsConstructor;
-import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 
 @AllArgsConstructor
-public class Category extends TripPinEntity {
+public class Category extends AbstractEntity {
 
-    private long id;
+    private int id;
 
     private String name;
 
@@ -35,9 +36,9 @@ public class Category extends TripPinEntity {
     }
 
     @Override
-    public Entity createEntity() {
+    public org.apache.olingo.commons.api.data.Entity createEntity() {
 
-        Entity entity = new Entity();
+        org.apache.olingo.commons.api.data.Entity entity = new org.apache.olingo.commons.api.data.Entity();
 
         entity.addProperty(new Property(null, "ID", ValueType.PRIMITIVE, this.id));
         entity.addProperty(new Property(null, "Name", ValueType.PRIMITIVE, this.name));
