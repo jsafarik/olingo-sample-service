@@ -52,6 +52,8 @@ public class TripPinServlet extends HttpServlet {
         session.setAttribute(Storage.class.getName(), storage);
       }
 
+      log.info(req.toString());
+
       // create odata handler and configure it with EdmProvider and Processor
       ODataHttpHandler handler = odata.createHandler(edm);
       handler.register(new DemoEntityCollectionProcessor(storage));
