@@ -8,6 +8,6 @@ public abstract class AbstractEntity {
     public abstract FullQualifiedName getEtFqn();
     public abstract String getEsName();
     public abstract Object getId();
-    public abstract Entity createEntity();
+    public abstract Entity getEntity();
 
 }

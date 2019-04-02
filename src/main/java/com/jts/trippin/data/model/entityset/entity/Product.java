@@ -14,37 +14,21 @@ public class Product extends AbstractEntity {
     public final static FullQualifiedName FQN
             = new FullQualifiedName(DemoEdmProvider.NAMESPACE, Product.class.getSimpleName());
 
-    private int id;
-
-    private String name;
-
-    private String description;
-
     private Entity entity;
 
     public Product(int id, String name, String description) {
         this.entity = new Entity();
 
-        entity.addProperty(new Property(null, "ID", ValueType.PRIMITIVE, this.id));
-        entity.addProperty(new Property(null, "Name", ValueType.PRIMITIVE, this.name));
-        entity.addProperty(new Property(null, "Description", ValueType.PRIMITIVE, this.description));
+        entity.addProperty(new Property(null, "ID", ValueType.PRIMITIVE, id));
+        entity.addProperty(new Property(null, "Name", ValueType.PRIMITIVE, name));
+        entity.addProperty(new Property(null, "Description", ValueType.PRIMITIVE, description));
 
         entity.setType(FQN.getFullQualifiedNameAsString());
         entity.setId(Util.createId(this));
     }
 
     @Override
-    public Entity createEntity() {
-
-        Entity entity = new Entity();
-
-        entity.addProperty(new Property(null, "ID", ValueType.PRIMITIVE, this.id));
-        entity.addProperty(new Property(null, "Name", ValueType.PRIMITIVE, this.name));
-        entity.addProperty(new Property(null, "Description", ValueType.PRIMITIVE, this.description));
-
-        entity.setType(FQN.getFullQualifiedNameAsString());
-        entity.setId(Util.createId(this));
-
+    public Entity getEntity() {
         return entity;
     }
 
@@ -60,6 +44,6 @@ public class Product extends AbstractEntity {
 
     @Override
     public Object getId() {
-        return this.entity.getProperty("ID");
+        return this.entity.getProperty("ID").getValue();
     }
 }

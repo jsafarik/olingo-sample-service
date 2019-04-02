@@ -33,6 +33,7 @@ import com.jts.trippin.data.model.entityset.entity.Category;
 import com.jts.trippin.data.model.entityset.entity.Product;
 import com.jts.trippin.service.DemoEdmProvider;
 import com.jts.trippin.util.Util;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
@@ -56,6 +57,7 @@ import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 
+@Slf4j
 public class Storage {
 
     final private TransactionalEntityManager manager;
@@ -306,8 +308,7 @@ public class Storage {
                                 List<Entity> entityList, final String rawServiceUri) throws ODataApplicationException {
 
         // 1.) Create the entity
-        final Entity newEntity = new Entity();
-        newEntity.setType(entity.getType());
+        Entity newEntity = new Entity();
 
         // Create the new key of the entity
         int newId = 1;
@@ -315,12 +316,20 @@ public class Storage {
             newId++;
         }
 
-        // Add all provided properties
-        newEntity.getProperties().addAll(entity.getProperties());
+        if (entity.getType().equals(Product.FQN.getFullQualifiedNameAsString())){
+            Product product = new Product(newId, (String) entity.getProperty("Name").getValue(), (String) entity.getProperty("Description").getValue());
+            newEntity = product.getEntity();
+        } else {
+            newEntity.setType(entity.getType());
+            log.info("Entity type: " + entity.getType());
 
-        // Add the key property
-        newEntity.getProperties().add(new Property(null, "ID", ValueType.PRIMITIVE, newId));
-        newEntity.setId(createId(newEntity, "ID"));
+            // Add all provided properties
+            newEntity.getProperties().addAll(entity.getProperties());
+
+            // Add the key property
+            newEntity.getProperties().add(new Property(null, "ID", ValueType.PRIMITIVE, newId));
+            newEntity.setId(createId(newEntity, "ID"));
+        }
 
         // 2.1.) Apply binding links
         for (final Link link : entity.getNavigationBindings()) {
@@ -485,29 +494,29 @@ public class Storage {
         final List<Entity> productList = manager.getEntityCollection(Products.NAME);
 
         productList.add(new Product(0, "Notebook Basic 15",
-                "Notebook Basic, 1.7GHz - 15 XGA - 1024MB DDR2 SDRAM - 40GB").createEntity());
+                "Notebook Basic, 1.7GHz - 15 XGA - 1024MB DDR2 SDRAM - 40GB").getEntity());
 
         productList.add(new Product(1, "Notebook Professional 17",
-                "Notebook Professional, 2.8GHz - 15 XGA - 8GB DDR3 RAM - 500GB").createEntity());
+                "Notebook Professional, 2.8GHz - 15 XGA - 8GB DDR3 RAM - 500GB").getEntity());
 
         productList.add(new Product(2, "1UMTS PDA",
-                "Ultrafast 3G UMTS/HSDPA Pocket PC, supports GSM network").createEntity());
+                "Ultrafast 3G UMTS/HSDPA Pocket PC, supports GSM network").getEntity());
 
         productList.add(new Product(3, "Comfort Easy",
-                "32 GB Digital Assitant with high-resolution color screen").createEntity());
+                "32 GB Digital Assitant with high-resolution color screen").getEntity());
 
         productList.add(new Product(4, "Ergo Screen",
-                "19 Optimum Resolution 1024 x 768 @ 85Hz, resolution 1280 x 960").createEntity());
+                "19 Optimum Resolution 1024 x 768 @ 85Hz, resolution 1280 x 960").getEntity());
 
         productList.add(new Product(5, "Flat Basic",
-                "Optimum Hi-Resolution max. 1600 x 1200 @ 85Hz, Dot Pitch: 0.24mm").createEntity());
+                "Optimum Hi-Resolution max. 1600 x 1200 @ 85Hz, Dot Pitch: 0.24mm").getEntity());
     }
 
     private void initCategorySampleData() {
         final List<Entity> categoryList = manager.getEntityCollection(Category.ES_NAME);
-        categoryList.add(new Category(0, "Notebooks").createEntity());
-        categoryList.add(new Category(1, "Organizers").createEntity());
-        categoryList.add(new Category(2, "Monitors").createEntity());
+        categoryList.add(new Category(0, "Notebooks").getEntity());
+        categoryList.add(new Category(1, "Organizers").getEntity());
+        categoryList.add(new Category(2, "Monitors").getEntity());
     }
 
     private void initAdvertisementSampleData() {
@@ -516,12 +525,12 @@ public class Storage {
         advertisements.add(new Advertisement(UUID.fromString("f89dee73-af9f-4cd4-b330-db93c25ff3c7"),
                 "Old School Lemonade Store, Retro Style",
                 Timestamp.valueOf("2012-11-07 00:00:00"),
-                "Super content".getBytes()).createEntity());
+                "Advertisement numero uno".getBytes()).getEntity());
 
         advertisements.add(new Advertisement(UUID.fromString("db2d2186-1c29-4d1e-88ef-a127f521b9c67"),
                 "Early morning start, need coffee",
                 Timestamp.valueOf("2000-02-29 00:00:00"),
-                "Super content2".getBytes()).createEntity());
+                "Super ad numero dos".getBytes()).getEntity());
     }
 
     private void linkProductsAndCategories(final int numberOfProducts) {

@@ -18,7 +18,6 @@
  */
 package com.jts.trippin.web;
 
-import java.io.IOException;
 import java.lang.Override;import java.lang.RuntimeException;import java.util.ArrayList;
 
 import javax.servlet.ServletException;
@@ -52,12 +51,12 @@ public class TripPinServlet extends HttpServlet {
         session.setAttribute(Storage.class.getName(), storage);
       }
 
-      log.info(req.toString());
+      log.info(req.getMethod() + ": " + req.getRequestURI());
 
       // create odata handler and configure it with EdmProvider and Processor
       ODataHttpHandler handler = odata.createHandler(edm);
       handler.register(new DemoEntityCollectionProcessor(storage));
-      handler.register(new DemoEntityProcessor(storage));
+      handler.register(new CustomEntityProcessor(storage));
       handler.register(new DemoPrimitiveProcessor(storage));
       handler.register(new DemoActionProcessor(storage));
       handler.register(new DemoBatchProcessor(storage));
