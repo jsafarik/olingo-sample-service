@@ -55,7 +55,7 @@ public class TripPinServlet extends HttpServlet {
 
       log.info(req.getMethod() + ": " + req.getRequestURI());
 
-      if ("POST".equalsIgnoreCase(req.getMethod()))
+      if ("PATCH".equalsIgnoreCase(req.getMethod()))
       {
         log.info(req.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
       }
