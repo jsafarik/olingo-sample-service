@@ -18,7 +18,9 @@
  */
 package com.jts.trippin.web;
 
+import java.io.IOException;
 import java.lang.Override;import java.lang.RuntimeException;import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -40,7 +42,7 @@ public class TripPinServlet extends HttpServlet {
   private static final int serialVersionUID = 1;
 
   @Override
-  protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
+  protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     OData odata = OData.newInstance();
     ServiceMetadata edm = odata.createServiceMetadata(new DemoEdmProvider(), new ArrayList<>());
     try {
@@ -53,6 +55,10 @@ public class TripPinServlet extends HttpServlet {
 
       log.info(req.getMethod() + ": " + req.getRequestURI());
 
+      if ("POST".equalsIgnoreCase(req.getMethod()))
+      {
+        log.info(req.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
+      }
       // create odata handler and configure it with EdmProvider and Processor
       ODataHttpHandler handler = odata.createHandler(edm);
       handler.register(new DemoEntityCollectionProcessor(storage));
