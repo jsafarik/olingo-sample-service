@@ -53,12 +53,8 @@ public class TripPinServlet extends HttpServlet {
         session.setAttribute(Storage.class.getName(), storage);
       }
 
-      log.info(req.getMethod() + ": " + req.getRequestURI());
+      log.info("Received request: " + req.getMethod() + ": " + req.getRequestURI());
 
-      if ("PATCH".equalsIgnoreCase(req.getMethod()))
-      {
-        log.info(req.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
-      }
       // create odata handler and configure it with EdmProvider and Processor
       ODataHttpHandler handler = odata.createHandler(edm);
       handler.register(new DemoEntityCollectionProcessor(storage));

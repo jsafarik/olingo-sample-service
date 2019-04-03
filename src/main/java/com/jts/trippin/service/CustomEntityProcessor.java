@@ -84,7 +84,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
             throws ODataApplicationException, SerializerException {
 
         // The sample service supports only functions imports and entity sets.
-        // We do not care about bound functions and composable functions.
+        // We do not care (yet?) about bound functions and composable functions.
 
         UriResource uriResource = uriInfo.getUriResourceParts().get(0);
 
@@ -139,6 +139,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
         ODataDeserializer deserializer = this.odata.createDeserializer(requestFormat);
         DeserializerResult result = deserializer.entity(requestInputStream, edmEntityType);
         Entity requestEntity = result.getEntity();
+        log.info(requestEntity.toString());
         // 2.2 do the creation in backend, which returns the newly created entity
 
         Entity createdEntity = null;
@@ -177,7 +178,9 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
 
         // 1. Retrieve the entity set which belongs to the requested entity
         List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
-        // Note: only in our example we can assume that the first segment is the EntitySet
+
+        // Retrieving first segment, eg. for root.com/Products(1) it will be Products(1) (tostring returns only Products)
+        // Note: only in our example we can assume that the first segment is the EntitySet (not a batch)
         UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
         EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
@@ -325,7 +328,8 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
 
         if (!(firstSegment instanceof UriResourceFunction)) {
             log.error("First segment of resource path is not a function import (UriResourceFunction)");
-            throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
+            throw new ODataApplicationException("Only EntitySet or Function Import is supported as first segment of URI",
+                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
                     Locale.ENGLISH);
         }
 
@@ -357,19 +361,22 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
         Entity responseEntity = null; // required for serialization of the response body
         EdmEntitySet responseEdmEntitySet = null; // we need this for building the contextUrl
 
-        // 1st step: retrieve the requested Product: can be "normal" read operation, or navigation (to-one)
+        // 1st step: retrieve the requested Entity: can be "normal" read operation, or navigation (to-one)
         List<UriResource> resourceParts = uriInfo.getUriResourceParts();
         int segmentCount = resourceParts.size();
 
         UriResource uriResource = resourceParts.get(0); // in our example, the first segment is the EntitySet
         if (!(uriResource instanceof UriResourceEntitySet)) {
-            log.error("First segment of resource path is not a entity set (UriResourceFunction)");
-            throw new ODataApplicationException("Only EntitySet is supported",
-                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+            log.error("First segment of resource path is not an entity set (UriResourceEntitySet)");
+            throw new ODataApplicationException("First segment of resource path is not an entity set",
+                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
+                    Locale.ENGLISH);
         }
 
         UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) uriResource;
         EdmEntitySet startEdmEntitySet = uriResourceEntitySet.getEntitySet();
+
+        resourceParts.forEach(resource -> log.info(resource.toString()));
 
         // Analyze the URI segments
         if (segmentCount == 1) { // no navigation
@@ -396,7 +403,8 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
             }
         } else {
             // this would be the case for e.g. Products(1)/Category/Products(1)/Category
-            throw new ODataApplicationException("Not supported", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.getDefault());
+            log.info("status code: " + HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
+            throw new ODataApplicationException("Not supported", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH, null, "");
         }
 
         if (responseEntity == null) {
