@@ -304,21 +304,23 @@ public class Storage {
 
     /* INTERNAL */
 
-    private Entity createEntity(EdmEntitySet edmEntitySet, EdmEntityType edmEntityType, Entity entity,
-                                List<Entity> entityList, final String rawServiceUri) throws ODataApplicationException {
-
-        // 1.) Create the entity
+    private Entity createSimpleEntity(Entity entity, int newId) {
         Entity newEntity = new Entity();
 
-        // Create the new key of the entity
-        int newId = 1;
-        while (entityIdExists(newId, entityList)) {
-            newId++;
-        }
+        if (entity.getType().equals(Product.FQN.getFullQualifiedNameAsString())) {
 
-        if (entity.getType().equals(Product.FQN.getFullQualifiedNameAsString())){
+            log.info("Creating Product with the new Product class");
+
             Product product = new Product(newId, (String) entity.getProperty("Name").getValue(), (String) entity.getProperty("Description").getValue());
             newEntity = product.getEntity();
+
+        } else if (entity.getType().equals(Category.ET_FQN.getFullQualifiedNameAsString())) {
+
+            log.info("Creating Category with the new Category class");
+
+            Category category = new Category(newId, (String) entity.getProperty("Name").getValue());
+            newEntity = category.getEntity();
+
         } else {
             newEntity.setType(entity.getType());
             log.info("Entity type: " + entity.getType());
@@ -330,6 +332,19 @@ public class Storage {
             newEntity.getProperties().add(new Property(null, "ID", ValueType.PRIMITIVE, newId));
             newEntity.setId(createId(newEntity, "ID"));
         }
+        return newEntity;
+    }
+
+    private Entity createEntity(EdmEntitySet edmEntitySet, EdmEntityType edmEntityType, Entity entity,
+                                List<Entity> entityList, final String rawServiceUri) throws ODataApplicationException {
+        // Create the new key of the entity
+        int newId = 1;
+        while (entityIdExists(newId, entityList)) {
+            newId++;
+        }
+
+        // 1.) Create the entity
+        Entity newEntity = createSimpleEntity(entity, newId);
 
         // 2.1.) Apply binding links
         for (final Link link : entity.getNavigationBindings()) {

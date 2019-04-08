@@ -32,6 +32,7 @@ import com.jts.trippin.service.*;
 import com.jts.trippin.data.Storage;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.olingo.commons.api.edm.Edm;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataHttpHandler;
 import org.apache.olingo.server.api.ServiceMetadata;
@@ -41,21 +42,32 @@ public class TripPinServlet extends HttpServlet {
 
   private static final int serialVersionUID = 1;
 
+  private Storage storage;
+
+  private Storage getStorage(OData odata, Edm edm){
+    if (this.storage == null) {
+      this.storage = new Storage(odata, edm);
+    }
+    return this.storage;
+  }
+
   @Override
   protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     OData odata = OData.newInstance();
     ServiceMetadata edm = odata.createServiceMetadata(new DemoEdmProvider(), new ArrayList<>());
     try {
       HttpSession session = req.getSession(true);
-      Storage storage = (Storage) session.getAttribute(Storage.class.getName());
+      log.info("Session id: " + session.getId());
+      Storage storage = getStorage(odata, edm.getEdm());
+      //Storage storage = (Storage) session.getAttribute(Storage.class.getName());
       if (storage == null) {
         storage = new Storage(odata, edm.getEdm());
         session.setAttribute(Storage.class.getName(), storage);
       }
 
-      log.info("Received request: " + req.getMethod() + ": " + req.getRequestURI());
+      log.info("Received request: " + req.getMethod() + ": " + req.getRequestURI() + (req.getQueryString() == null ? "" : "?" + req.getQueryString()));
 
-      // create odata handler and configure it with EdmProvider and Processor
+      // create odata handler and configure it with EdmProvider and Processors
       ODataHttpHandler handler = odata.createHandler(edm);
       handler.register(new DemoEntityCollectionProcessor(storage));
       handler.register(new CustomEntityProcessor(storage));

@@ -134,14 +134,12 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
         // 2. create the data in backend
-        // 2.1. retrieve the payload from the POST request for the entity to create and deserialize it
-        InputStream requestInputStream = request.getBody();
-        ODataDeserializer deserializer = this.odata.createDeserializer(requestFormat);
-        DeserializerResult result = deserializer.entity(requestInputStream, edmEntityType);
-        Entity requestEntity = result.getEntity();
-        log.info(requestEntity.toString());
-        // 2.2 do the creation in backend, which returns the newly created entity
 
+        // 2.1. retrieve the payload from the POST request for the entity to create and deserialize it
+        Entity requestEntity = getEntityFromRequest(request, requestFormat, edmEntityType);
+        log.info("Incoming data for POST request: " + requestEntity.toString());
+
+        // 2.2 do the creation in backend, which returns the newly created entity
         Entity createdEntity = null;
         try {
             storage.beginTransaction();
@@ -318,6 +316,13 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     }
 
     /* Util methods */
+
+    private Entity getEntityFromRequest(ODataRequest request, ContentType requestFormat, EdmEntityType edmEntityType) throws DeserializerException {
+        InputStream requestInputStream = request.getBody();
+        ODataDeserializer deserializer = this.odata.createDeserializer(requestFormat);
+        DeserializerResult result = deserializer.entity(requestInputStream, edmEntityType);
+        return result.getEntity();
+    }
 
     private void readFunctionImportInternal(final ODataRequest request, final ODataResponse response,
                                             final UriInfo uriInfo, final ContentType responseFormat) throws ODataApplicationException, SerializerException {
