@@ -18,22 +18,6 @@
  */
 package com.jts.trippin.data;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import com.jts.trippin.data.model.entityset.Products;
-import com.jts.trippin.data.model.entityset.entity.Advertisement;
-import com.jts.trippin.data.model.entityset.entity.Category;
-import com.jts.trippin.data.model.entityset.entity.Product;
-import com.jts.trippin.service.DemoEdmProvider;
-import com.jts.trippin.util.Util;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
@@ -57,25 +41,45 @@ import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 
+import com.jts.trippin.data.model.entityset.Products;
+import com.jts.trippin.data.model.entityset.entity.Advertisement;
+import com.jts.trippin.data.model.entityset.entity.Category;
+import com.jts.trippin.data.model.entityset.entity.Product;
+import com.jts.trippin.service.DemoEdmProvider;
+import com.jts.trippin.util.Util;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 public class Storage {
 
     final private TransactionalEntityManager manager;
     final private Edm edm;
     final private OData odata;
+    private PrepopulatedData prepopulatedData;
 
     // represent our database
     public Storage(final OData odata, final Edm edm) {
         this.odata = odata;
         this.edm = edm;
-        manager = new TransactionalEntityManager(edm);
+        this.manager = new TransactionalEntityManager(edm);
+        this.prepopulatedData = new PrepopulatedData(manager);
 
         final List<Entity> productList = manager.getEntityCollection(Products.NAME);
 
         // creating some sample data
-        initProductSampleData();
-        initCategorySampleData();
-        initAdvertisementSampleData();
+        prepopulatedData.initProductSampleData();
+        prepopulatedData.initCategorySampleData();
+        prepopulatedData.initAdvertisementSampleData();
 
         linkProductsAndCategories(productList.size());
     }
@@ -95,7 +99,7 @@ public class Storage {
     }
 
     public Entity readFunctionImportEntity(final UriResourceFunction uriResourceFunction,
-                                           final ServiceMetadata serviceMetadata) throws ODataApplicationException {
+        final ServiceMetadata serviceMetadata) throws ODataApplicationException {
 
         final EntityCollection entityCollection = readFunctionImportCollection(uriResourceFunction, serviceMetadata);
         final EdmEntityType edmEntityType = (EdmEntityType) uriResourceFunction.getFunction().getReturnType().getType();
@@ -104,7 +108,7 @@ public class Storage {
     }
 
     public EntityCollection readFunctionImportCollection(final UriResourceFunction uriResourceFunction,
-                                                         final ServiceMetadata serviceMetadata) throws ODataApplicationException {
+        final ServiceMetadata serviceMetadata) throws ODataApplicationException {
 
         if (DemoEdmProvider.FUNCTION_COUNT_CATEGORIES_FQN.getName().equals(uriResourceFunction.getFunctionImport().getName())) {
             // Get the parameter of the function
@@ -116,10 +120,10 @@ public class Storage {
                 amount = Integer.parseInt(parameterAmount.getText());
             } catch (NumberFormatException e) {
                 throw new ODataApplicationException("Type of parameter Amount must be Edm.Int32", HttpStatusCode.BAD_REQUEST
-                        .getStatusCode(), Locale.ENGLISH);
+                    .getStatusCode(), Locale.ENGLISH);
             }
 
-            final List<Entity> resultEntityList = new ArrayList<Entity>();
+            final List<Entity> resultEntityList = new ArrayList<>();
 
             // Loop over all categories and check how many products are linked
             for (final Entity category : manager.getEntityCollection(Category.ES_NAME)) {
@@ -134,7 +138,7 @@ public class Storage {
             return resultCollection;
         } else {
             throw new ODataApplicationException("Function not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
-                    Locale.ROOT);
+                Locale.ROOT);
         }
     }
 
@@ -147,21 +151,21 @@ public class Storage {
         manager.clear();
 
         // Create new sample data
-        initProductSampleData();
-        initCategorySampleData();
+        prepopulatedData.initProductSampleData();
+        prepopulatedData.initCategorySampleData();
 
         final List<Entity> productList = manager.getEntityCollection(Products.NAME);
         final List<Entity> categoryList = manager.getEntityCollection(Category.ES_NAME);
 
         // Truncate the lists
         if (amount < productList.size()) {
-            final List<Entity> newProductList = new ArrayList<Entity>(productList.subList(0, amount));
+            final List<Entity> newProductList = new ArrayList<>(productList.subList(0, amount));
             productList.clear();
             productList.addAll(newProductList);
             // Products 0, 1 are linked to category 0
             // Products 2, 3 are linked to category 1
             // Products 4, 5 are linked to category 2
-            final List<Entity> newCategoryList = new ArrayList<Entity>(categoryList.subList(0, (amount / 2) + 1));
+            final List<Entity> newCategoryList = new ArrayList<>(categoryList.subList(0, (amount / 2) + 1));
             categoryList.clear();
             categoryList.addAll(newCategoryList);
         }
@@ -183,7 +187,7 @@ public class Storage {
     }
 
     public Entity readEntityData(EdmEntitySet edmEntitySet, List<UriParameter> keyParams)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
 
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
@@ -201,13 +205,13 @@ public class Storage {
     // Navigation
 
     public Entity getRelatedEntity(Entity entity, UriResourceNavigation navigationResource)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
 
         final EdmNavigationProperty edmNavigationProperty = navigationResource.getProperty();
 
         if (edmNavigationProperty.isCollection()) {
             return Util.findEntity(edmNavigationProperty.getType(), getRelatedEntityCollection(entity, navigationResource),
-                    navigationResource.getKeyPredicates());
+                navigationResource.getKeyPredicates());
         } else {
             final Link link = entity.getNavigationLink(edmNavigationProperty.getName());
             return link == null ? null : link.getInlineEntity();
@@ -224,16 +228,16 @@ public class Storage {
     }
 
     public Entity createEntityData(EdmEntitySet edmEntitySet, Entity entityToCreate, String rawServiceUri)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
 
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
         if (edmEntitySet.getName().equals(Products.NAME)) {
             return createEntity(edmEntitySet, edmEntityType, entityToCreate,
-                    manager.getEntityCollection(Products.NAME), rawServiceUri);
+                manager.getEntityCollection(Products.NAME), rawServiceUri);
         } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
             return createEntity(edmEntitySet, edmEntityType, entityToCreate,
-                    manager.getEntityCollection(Category.ES_NAME), rawServiceUri);
+                manager.getEntityCollection(Category.ES_NAME), rawServiceUri);
         }
 
         return null;
@@ -243,24 +247,24 @@ public class Storage {
      * This method is invoked for PATCH or PUT requests
      */
     public void updateEntityData(EdmEntitySet edmEntitySet, List<UriParameter> keyParams, Entity updateEntity,
-                                 HttpMethod httpMethod) throws ODataApplicationException {
+        HttpMethod httpMethod) throws ODataApplicationException {
 
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
         if (edmEntitySet.getName().equals(Products.NAME)) {
             updateEntity(edmEntityType, keyParams, updateEntity, httpMethod,
-                    manager.getEntityCollection(Products.NAME));
+                manager.getEntityCollection(Products.NAME));
         } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
             updateEntity(edmEntityType, keyParams, updateEntity, httpMethod,
-                    manager.getEntityCollection(Category.ES_NAME));
+                manager.getEntityCollection(Category.ES_NAME));
         } else if (edmEntitySet.getName().equals(Advertisement.ES_NAME)) {
             updateEntity(edmEntityType, keyParams, updateEntity, httpMethod,
-                    manager.getEntityCollection(Advertisement.ES_NAME));
+                manager.getEntityCollection(Advertisement.ES_NAME));
         }
     }
 
     public void deleteEntityData(EdmEntitySet edmEntitySet, List<UriParameter> keyParams)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
 
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
@@ -284,7 +288,7 @@ public class Storage {
     }
 
     public Entity createMediaEntity(final EdmEntityType edmEntityType, final String mediaContentType,
-                                    final byte[] data) {
+        final byte[] data) {
         Entity entity = null;
 
         if (edmEntityType.getName().equals(Advertisement.ET_FQN.getName())) {
@@ -311,16 +315,15 @@ public class Storage {
 
             log.info("Creating Product with the new Product class");
 
-            Product product = new Product(newId, (String) entity.getProperty("Name").getValue(), (String) entity.getProperty("Description").getValue());
+            Product product =
+                new Product(newId, (String) entity.getProperty("Name").getValue(), (String) entity.getProperty("Description").getValue());
             newEntity = product.getEntity();
-
         } else if (entity.getType().equals(Category.ET_FQN.getFullQualifiedNameAsString())) {
 
             log.info("Creating Category with the new Category class");
 
             Category category = new Category(newId, (String) entity.getProperty("Name").getValue());
             newEntity = category.getEntity();
-
         } else {
             newEntity.setType(entity.getType());
             log.info("Entity type: " + entity.getType());
@@ -336,7 +339,7 @@ public class Storage {
     }
 
     private Entity createEntity(EdmEntitySet edmEntitySet, EdmEntityType edmEntityType, Entity entity,
-                                List<Entity> entityList, final String rawServiceUri) throws ODataApplicationException {
+        List<Entity> entityList, final String rawServiceUri) throws ODataApplicationException {
         // Create the new key of the entity
         int newId = 1;
         while (entityIdExists(newId, entityList)) {
@@ -384,7 +387,7 @@ public class Storage {
     }
 
     private Entity readEntityByBindingLink(final String entityId, final EdmEntitySet edmEntitySet,
-                                           final String rawServiceUri) throws ODataApplicationException {
+        final String rawServiceUri) throws ODataApplicationException {
 
         UriResourceEntitySet entitySetResource = null;
         try {
@@ -392,12 +395,12 @@ public class Storage {
 
             if (!entitySetResource.getEntitySet().getName().equals(edmEntitySet.getName())) {
                 throw new ODataApplicationException("Execpted an entity-id for entity set " + edmEntitySet.getName()
-                        + " but found id for entity set " + entitySetResource.getEntitySet().getName(),
-                        HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+                    + " but found id for entity set " + entitySetResource.getEntitySet().getName(),
+                    HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
             }
         } catch (DeserializerException e) {
             throw new ODataApplicationException(entityId + " is not a valid entity-Id",
-                    HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+                HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
         }
 
         return readEntityData(entitySetResource.getEntitySet(), entitySetResource.getKeyPredicates());
@@ -412,7 +415,7 @@ public class Storage {
     }
 
     private Entity getEntity(EdmEntityType edmEntityType, List<UriParameter> keyParams, List<Entity> entityList)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
 
         // the list of entities at runtime
         EntityCollection entitySet = getEntityCollection(entityList);
@@ -424,7 +427,7 @@ public class Storage {
             // this variable is null if our data doesn't contain an entity for the requested key
             // Throw suitable exception
             throw new ODataApplicationException("Product for requested key doesn't exist",
-                    HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+                HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
         }
 
         return requestedEntity;
@@ -443,7 +446,7 @@ public class Storage {
     }
 
     private void updateEntity(EdmEntityType edmEntityType, List<UriParameter> keyParams, Entity updateEntity,
-                              HttpMethod httpMethod, List<Entity> entityList) throws ODataApplicationException {
+        HttpMethod httpMethod, List<Entity> entityList) throws ODataApplicationException {
 
         Entity entity = getEntity(edmEntityType, keyParams, entityList);
         if (entity == null) {
@@ -482,12 +485,12 @@ public class Storage {
     }
 
     private void deleteEntity(EdmEntityType edmEntityType, List<UriParameter> keyParams, List<Entity> entityList)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
 
         Entity entity = getEntity(edmEntityType, keyParams, entityList);
         if (entity == null) {
             throw new ODataApplicationException("Product not found", HttpStatusCode.NOT_FOUND.getStatusCode(),
-                    Locale.ENGLISH);
+                Locale.ENGLISH);
         }
 
         entityList.remove(entity);
@@ -502,50 +505,6 @@ public class Storage {
             }
         }
         return false;
-    }
-
-
-    private void initProductSampleData() {
-        final List<Entity> productList = manager.getEntityCollection(Products.NAME);
-
-        productList.add(new Product(0, "Notebook Basic 15",
-                "Notebook Basic, 1.7GHz - 15 XGA - 1024MB DDR2 SDRAM - 40GB").getEntity());
-
-        productList.add(new Product(1, "Notebook Professional 17",
-                "Notebook Professional, 2.8GHz - 15 XGA - 8GB DDR3 RAM - 500GB").getEntity());
-
-        productList.add(new Product(2, "1UMTS PDA",
-                "Ultrafast 3G UMTS/HSDPA Pocket PC, supports GSM network").getEntity());
-
-        productList.add(new Product(3, "Comfort Easy",
-                "32 GB Digital Assitant with high-resolution color screen").getEntity());
-
-        productList.add(new Product(4, "Ergo Screen",
-                "19 Optimum Resolution 1024 x 768 @ 85Hz, resolution 1280 x 960").getEntity());
-
-        productList.add(new Product(5, "Flat Basic",
-                "Optimum Hi-Resolution max. 1600 x 1200 @ 85Hz, Dot Pitch: 0.24mm").getEntity());
-    }
-
-    private void initCategorySampleData() {
-        final List<Entity> categoryList = manager.getEntityCollection(Category.ES_NAME);
-        categoryList.add(new Category(0, "Notebooks").getEntity());
-        categoryList.add(new Category(1, "Organizers").getEntity());
-        categoryList.add(new Category(2, "Monitors").getEntity());
-    }
-
-    private void initAdvertisementSampleData() {
-        final List<Entity> advertisements = manager.getEntityCollection(Advertisement.ES_NAME);
-
-        advertisements.add(new Advertisement(UUID.fromString("f89dee73-af9f-4cd4-b330-db93c25ff3c7"),
-                "Old School Lemonade Store, Retro Style",
-                Timestamp.valueOf("2012-11-07 00:00:00"),
-                "Advertisement numero uno".getBytes()).getEntity());
-
-        advertisements.add(new Advertisement(UUID.fromString("db2d2186-1c29-4d1e-88ef-a127f521b9c67"),
-                "Early morning start, need coffee",
-                Timestamp.valueOf("2000-02-29 00:00:00"),
-                "Super ad numero dos".getBytes()).getEntity());
     }
 
     private void linkProductsAndCategories(final int numberOfProducts) {
@@ -573,15 +532,15 @@ public class Storage {
 
         if (numberOfProducts >= 1) {
             setLinks(categoryList.get(0), "Products",
-                    productList.subList(0, Math.min(2, numberOfProducts)).toArray(new Entity[0]));
+                productList.subList(0, Math.min(2, numberOfProducts)).toArray(new Entity[0]));
         }
         if (numberOfProducts >= 3) {
             setLinks(categoryList.get(1), "Products",
-                    productList.subList(2, Math.min(4, numberOfProducts)).toArray(new Entity[0]));
+                productList.subList(2, Math.min(4, numberOfProducts)).toArray(new Entity[0]));
         }
         if (numberOfProducts >= 5) {
             setLinks(categoryList.get(2), "Products",
-                    productList.subList(4, Math.min(6, numberOfProducts)).toArray(new Entity[0]));
+                productList.subList(4, Math.min(6, numberOfProducts)).toArray(new Entity[0]));
         }
     }
 
@@ -615,7 +574,7 @@ public class Storage {
     }
 
     private void createLink(final EdmNavigationProperty navigationProperty, final Entity srcEntity,
-                            final Entity destEntity) {
+        final Entity destEntity) {
         setLink(navigationProperty, srcEntity, destEntity);
 
         final EdmNavigationProperty partnerNavigationProperty = navigationProperty.getPartner();
@@ -625,7 +584,7 @@ public class Storage {
     }
 
     private void setLink(final EdmNavigationProperty navigationProperty, final Entity srcEntity,
-                         final Entity targetEntity) {
+        final Entity targetEntity) {
         if (navigationProperty.isCollection()) {
             setLinks(srcEntity, navigationProperty.getName(), targetEntity);
         } else {

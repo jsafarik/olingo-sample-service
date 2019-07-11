@@ -22,7 +22,6 @@ import org.apache.olingo.commons.api.edm.Edm;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataHttpHandler;
 import org.apache.olingo.server.api.ServiceMetadata;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.jts.trippin.data.Storage;
 import com.jts.trippin.service.CustomDefaultProcessor;
@@ -44,7 +43,6 @@ import java.util.ArrayList;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@SpringBootApplication
 public class TripPinServlet extends HttpServlet {
 
     private static final int serialVersionUID = 1;
