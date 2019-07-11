@@ -44,7 +44,7 @@ public class TransactionalEntityManager {
 
     public List<Entity> getEntityCollection(final String entitySetName) {
         if (!entities.containsKey(entitySetName)) {
-            entities.put(entitySetName, new ArrayList<Entity>());
+            entities.put(entitySetName, new ArrayList<>());
         }
 
         return entities.get(entitySetName);
