@@ -146,7 +146,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
             createdEntity = storage.createEntityData(edmEntitySet, requestEntity, request.getRawBaseUri());
             storage.commitTransaction();
         } catch (ODataApplicationException e) {
-            storage.rollbackTranscation();
+            storage.rollbackTransaction();
             throw e;
         }
 
