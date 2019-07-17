@@ -1,6 +1,7 @@
 package com.jts.trippin.data.model.entityset;
 
 import com.jts.trippin.data.model.AbstractEntity;
+import com.jts.trippin.data.model.entityset.entity.ODataEntity;
 import com.jts.trippin.data.model.entityset.entity.Product;
 import lombok.Getter;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
@@ -16,14 +17,13 @@ public class Products {
 
     private List<AbstractEntity> entities;
     private int idCounter = 0;
-    public static final String NAME = Products.class.getSimpleName();
     @Getter
     private CsdlEntitySet entitySet;
     private List<CsdlNavigationPropertyBinding> navPropBindingList;
 
     public Products(){
         this.entitySet = new CsdlEntitySet();
-        this.entitySet.setName(NAME);
+        this.entitySet.setName(ODataEntity.PRODUCT.getEsName());
         this.entitySet.setType(Product.FQN);
         this.entitySet.setNavigationPropertyBindings(getNavigationPropertyBindings());
     }
@@ -38,7 +38,7 @@ public class Products {
         CsdlNavigationPropertyBinding navPropBinding = new CsdlNavigationPropertyBinding();
         // the target entity set where the navigation property points to
         navPropBinding.setTarget("Categories");
-        // the path from entity type to navigation property (only 1 CategorY for item)
+        // the path from entity type to navigation property (only 1 Category for item)
         navPropBinding.setPath("Category");
 
         navPropBindingList.add(navPropBinding);

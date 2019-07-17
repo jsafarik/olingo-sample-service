@@ -18,10 +18,11 @@ import org.apache.olingo.server.api.deserializer.DeserializerException;
 import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 
-import com.jts.trippin.data.model.entityset.Products;
 import com.jts.trippin.data.model.entityset.entity.Advertisement;
 import com.jts.trippin.data.model.entityset.entity.Category;
+import com.jts.trippin.data.model.entityset.entity.ODataEntity;
 import com.jts.trippin.data.model.entityset.entity.Product;
+import com.jts.trippin.data.model.entityset.entity.User;
 import com.jts.trippin.util.Util;
 
 import java.net.URI;
@@ -41,9 +42,16 @@ public class StorageUtil {
         this.storage = storage;
     }
 
+    private static void appendSingleQuoteIfString(StringBuilder sb, Object id) {
+        if (id.getClass().equals(String.class)) {
+            sb.append("'");
+        }
+        log.info("{}: {} of type {}", "StorageUtil", id, id.getClass().toString());
+    }
+
     private Entity createSimpleEntity(Entity entity, int newId) {
         Entity newEntity = new Entity();
-
+        // TODO: Extend to support ID other than int
         if (entity.getType().equals(Product.FQN.getFullQualifiedNameAsString())) {
 
             log.info("Creating Product with the new Product class");
@@ -241,8 +249,8 @@ public class StorageUtil {
     }
 
     public void linkProductsAndCategories(final int numberOfProducts) {
-        final List<Entity> productList = storage.getManager().getEntityCollection(Products.NAME);
-        final List<Entity> categoryList = storage.getManager().getEntityCollection(Category.ES_NAME);
+        final List<Entity> productList = storage.getManager().getEntityCollection(ODataEntity.PRODUCT.getEsName());
+        final List<Entity> categoryList = storage.getManager().getEntityCollection(ODataEntity.CATEGORY.getEsName());
 
         if (numberOfProducts >= 1) {
             setLink(productList.get(0), "Category", categoryList.get(0));
@@ -284,8 +292,11 @@ public class StorageUtil {
     private URI createId(Entity entity, String idPropertyName, String navigationName) {
         try {
             StringBuilder sb = new StringBuilder(getEntitySetName(entity)).append("(");
+            appendSingleQuoteIfString(sb, entity.getProperty(idPropertyName).asPrimitive());
             final Property property = entity.getProperty(idPropertyName);
-            sb.append(property.asPrimitive()).append(")");
+            sb.append(property.asPrimitive());
+            appendSingleQuoteIfString(sb, property.asPrimitive());
+            sb.append(")");
             if (navigationName != null) {
                 sb.append("/").append(navigationName);
             }
@@ -297,11 +308,13 @@ public class StorageUtil {
 
     private String getEntitySetName(Entity entity) {
         if (Category.ET_FQN.getFullQualifiedNameAsString().equals(entity.getType())) {
-            return Category.ES_NAME;
+            return ODataEntity.CATEGORY.getEsName();
         } else if (Product.FQN.getFullQualifiedNameAsString().equals(entity.getType())) {
-            return Products.NAME;
+            return ODataEntity.PRODUCT.getEsName();
         } else if (Advertisement.ET_FQN.getFullQualifiedNameAsString().equals(entity.getType())) {
-            return Advertisement.ES_NAME;
+            return ODataEntity.ADVERTISEMENT.getEsName();
+        } else if (User.ET_FQN.getFullQualifiedNameAsString().equals(entity.getType())) {
+            return ODataEntity.USER.getEsName();
         }
         return entity.getType();
     }

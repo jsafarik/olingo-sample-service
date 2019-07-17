@@ -18,13 +18,6 @@
  */
 package com.jts.trippin.service;
 
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.olingo.commons.api.data.ContextURL;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
@@ -69,6 +62,16 @@ import org.apache.olingo.server.api.uri.queryoption.expression.Member;
 import com.jts.trippin.data.Storage;
 import com.jts.trippin.util.Util;
 
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DemoEntityCollectionProcessor implements EntityCollectionProcessor {
 
     private OData odata;
@@ -84,9 +87,11 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
         this.serviceMetadata = serviceMetadata;
     }
 
+    @Override
     public void readEntityCollection(ODataRequest request, ODataResponse response,
-                                     UriInfo uriInfo, ContentType responseFormat)
-            throws ODataApplicationException, SerializerException {
+        UriInfo uriInfo, ContentType responseFormat)
+        throws ODataApplicationException, SerializerException {
+        log.info("readEntityCollection");
 
         final UriResource firstResourceSegment = uriInfo.getUriResourceParts().get(0);
 
@@ -96,12 +101,12 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
             readFunctionImportCollection(request, response, uriInfo, responseFormat);
         } else {
             throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
-                    Locale.ENGLISH);
+                Locale.ENGLISH);
         }
     }
 
     private void readFunctionImportCollection(final ODataRequest request, final ODataResponse response,
-                                              final UriInfo uriInfo, final ContentType responseFormat) throws ODataApplicationException, SerializerException {
+        final UriInfo uriInfo, final ContentType responseFormat) throws ODataApplicationException, SerializerException {
 
         // 1st step: Analyze the URI and fetch the entity collection returned by the function import
         // Function Imports are always the first segment of the resource path
@@ -109,7 +114,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
 
         if (!(firstSegment instanceof UriResourceFunction)) {
             throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
-                    Locale.ENGLISH);
+                Locale.ENGLISH);
         }
 
         final UriResourceFunction uriResourceFunction = (UriResourceFunction) firstSegment;
@@ -122,7 +127,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
         final ODataSerializer serializer = odata.createSerializer(responseFormat);
 
         final SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCol,
-                opts);
+            opts);
 
         // 3rd configure the response object
         response.setContent(serializerResult.getContent());
@@ -131,7 +136,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
     }
 
     private void readEntityCollectionInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo,
-                                              ContentType responseFormat) throws ODataApplicationException, SerializerException {
+        ContentType responseFormat) throws ODataApplicationException, SerializerException {
 
         // Read the collection or process ONE navigation property
         EdmEntitySet edmEntitySet = null; // we'll need this to build the ContextURL
@@ -144,7 +149,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
         UriResource uriResource = resourceParts.get(0); // in our example, the first segment is the EntitySet
         if (!(uriResource instanceof UriResourceEntitySet)) {
             throw new ODataApplicationException("Only EntitySet is supported",
-                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+                HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
         }
 
         UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) uriResource;
@@ -172,7 +177,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
                 // error handling for e.g. DemoService.svc/Categories(99)/Products
                 if (sourceEntity == null) {
                     throw new ODataApplicationException("Product not found.",
-                            HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ROOT);
+                        HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ROOT);
                 }
                 // then fetch the entity collection where the entity navigates to
                 // note: we don't need to check uriResourceNavigation.isCollection(),
@@ -181,7 +186,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
             }
         } else { // this would be the case for e.g. Products(1)/Category/Products
             throw new ODataApplicationException("Not supported",
-                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+                HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
         }
         List<Entity> modifiedEntityList = entityCollection.getEntities();
         EntityCollection modifiedEntityCollection = new EntityCollection();
@@ -214,22 +219,22 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
         // we need the property names of the $select, in order to build the context URL
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
         String selectList = odata.createUriHelper()
-                .buildContextURLSelectList(edmEntityType, uriInfo.getExpandOption(), selectOption);
+            .buildContextURLSelectList(edmEntityType, uriInfo.getExpandOption(), selectOption);
         ContextURL contextUrl = ContextURL.with().entitySet(edmEntitySet).selectList(selectList).build();
 
         // adding the selectOption to the serializerOpts will actually tell the lib to do the job
         final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
         EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with()
-                .contextURL(contextUrl)
-                .count(uriInfo.getCountOption())
-                .select(selectOption)
-                .expand(uriInfo.getExpandOption())
-                .id(id)
-                .build();
+            .contextURL(contextUrl)
+            .count(uriInfo.getCountOption())
+            .select(selectOption)
+            .expand(uriInfo.getExpandOption())
+            .id(id)
+            .build();
 
         // and serialize the content: transform from the EntitySet object to InputStream
         SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType,
-                modifiedEntityCollection, opts);
+            modifiedEntityCollection, opts);
         InputStream serializedContent = serializerResult.getContent();
 
         // 5th: configure the response object: set the body, headers and status code
@@ -239,7 +244,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
     }
 
     private List<Entity> applyTopQueryOption(List<Entity> entityList, TopOption topOption)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
 
         if (topOption != null) {
             int topNumber = topOption.getValue();
@@ -249,7 +254,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
                 }  // else the client has requested more entities than available => return what we have
             } else {
                 throw new ODataApplicationException("Invalid value for $top", HttpStatusCode.BAD_REQUEST.getStatusCode(),
-                        Locale.ROOT);
+                    Locale.ROOT);
             }
         }
 
@@ -257,7 +262,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
     }
 
     private List<Entity> applySkipQueryOption(List<Entity> entityList, SkipOption skipOption)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
 
         if (skipOption != null) {
             int skipNumber = skipOption.getValue();
@@ -270,7 +275,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
                 }
             } else {
                 throw new ODataApplicationException("Invalid value for $skip", HttpStatusCode.BAD_REQUEST.getStatusCode(),
-                        Locale.ROOT);
+                    Locale.ROOT);
             }
         }
 
@@ -278,7 +283,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
     }
 
     private List<Entity> applyCountQueryOption(EntityCollection entityCollection, List<Entity> modifiedEntityList,
-                                               CountOption countOption) {
+        CountOption countOption) {
 
         // handle $count: always return the original number of entities, without considering $top and $skip
         if (countOption != null) {
@@ -339,29 +344,29 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
     }
 
     private void validateNestedExpxandSystemQueryOptions(final ExpandOption expandOption)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
         if (expandOption == null) {
             return;
         }
 
         for (final ExpandItem item : expandOption.getExpandItems()) {
             if (item.getCountOption() != null
-                    || item.getFilterOption() != null
-                    || item.getLevelsOption() != null
-                    || item.getOrderByOption() != null
-                    || item.getSearchOption() != null
-                    || item.getSelectOption() != null
-                    || item.getSkipOption() != null
-                    || item.getTopOption() != null) {
+                || item.getFilterOption() != null
+                || item.getLevelsOption() != null
+                || item.getOrderByOption() != null
+                || item.getSearchOption() != null
+                || item.getSelectOption() != null
+                || item.getSkipOption() != null
+                || item.getTopOption() != null) {
 
                 throw new ODataApplicationException("Nested expand system query options are not implemented",
-                        HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
             }
         }
     }
 
     private List<Entity> applyFilterQueryOption(List<Entity> entityList, FilterOption filterOption)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
 
         if (filterOption != null) {
             try {
@@ -387,13 +392,12 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
                         }
                     } else {
                         throw new ODataApplicationException("A filter expression must evaulate to type Edm.Boolean",
-                                HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+                            HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
                     }
                 }
-
             } catch (ExpressionVisitException e) {
                 throw new ODataApplicationException("Exception in filter evaluation",
-                        HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+                    HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
             }
         }
 

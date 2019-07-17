@@ -22,6 +22,8 @@ import org.apache.olingo.commons.api.edm.Edm;
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataHttpHandler;
 import org.apache.olingo.server.api.ServiceMetadata;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.jts.trippin.data.Storage;
 import com.jts.trippin.service.CustomDefaultProcessor;
@@ -39,21 +41,36 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Component
 public class TripPinServlet extends HttpServlet {
 
     private static final int serialVersionUID = 1;
 
+    @Autowired
+    private List<Class<?>> odataEntities;
+
     private Storage storage;
 
-    private Storage getStorage(OData odata, Edm edm) {
+    private Storage getStorage(OData odata, Edm edm, HttpSession session) {
         if (this.storage == null) {
-            this.storage = new Storage(odata, edm);
+            this.storage = new Storage(odata, edm, odataEntities);
+            session.setAttribute(Storage.class.getName(), storage);
         }
         return this.storage;
+    }
+
+    private void registerProcessors(ODataHttpHandler handler){
+        handler.register(new DemoEntityCollectionProcessor(storage));
+        handler.register(new CustomEntityProcessor(storage));
+        handler.register(new DemoPrimitiveProcessor(storage));
+        handler.register(new DemoActionProcessor(storage));
+        handler.register(new DemoBatchProcessor(storage));
+        handler.register(new CustomDefaultProcessor());
     }
 
     @Override
@@ -62,27 +79,19 @@ public class TripPinServlet extends HttpServlet {
         ServiceMetadata edm = odata.createServiceMetadata(new DemoEdmProvider(), new ArrayList<>());
         try {
             HttpSession session = req.getSession(true);
+            log.info("---Start of request---");
             log.info("Session id: " + session.getId());
-            Storage storage = getStorage(odata, edm.getEdm());
-            //Storage storage = (Storage) session.getAttribute(Storage.class.getName());
-            if (storage == null) {
-                storage = new Storage(odata, edm.getEdm());
-                session.setAttribute(Storage.class.getName(), storage);
-            }
+            Storage storage = getStorage(odata, edm.getEdm(), session);
 
-            log.info("Received request: " + req.getMethod() + ": " + req.getRequestURI() + (req.getQueryString() == null ? "" : "?" + req.getQueryString()));
+            log.info("Received request: {}: {}", req.getMethod(), req.getRequestURI() + (req.getQueryString() == null ? "" : "?" + req.getQueryString()));
 
             // create odata handler and configure it with EdmProvider and Processors
             ODataHttpHandler handler = odata.createHandler(edm);
-            handler.register(new DemoEntityCollectionProcessor(storage));
-            handler.register(new CustomEntityProcessor(storage));
-            handler.register(new DemoPrimitiveProcessor(storage));
-            handler.register(new DemoActionProcessor(storage));
-            handler.register(new DemoBatchProcessor(storage));
-            handler.register(new CustomDefaultProcessor());
+            registerProcessors(handler);
 
             // let the handler do the work
             handler.process(req, resp);
+            log.info("----End of request----\n");
         } catch (RuntimeException e) {
             log.error("Server Error occurred in ExampleServlet", e);
             throw new ServletException(e);

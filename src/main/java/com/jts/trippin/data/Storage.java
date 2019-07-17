@@ -36,16 +36,18 @@ import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResourceFunction;
 import org.apache.olingo.server.api.uri.UriResourceNavigation;
 
-import com.jts.trippin.data.model.entityset.Products;
 import com.jts.trippin.data.model.entityset.entity.Advertisement;
-import com.jts.trippin.data.model.entityset.entity.Category;
+import com.jts.trippin.data.model.entityset.entity.ODataEntity;
 import com.jts.trippin.service.DemoEdmProvider;
 import com.jts.trippin.util.Util;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -62,25 +64,31 @@ public class Storage {
     @Getter
     final private OData odata;
 
-    private PrepopulatedData prepopulatedData;
     private StorageUtil util;
 
     // represent our database
-    public Storage(final OData odata, final Edm edm) {
+    public Storage(final OData odata, final Edm edm, List<Class<?>> odataEntities) {
         this.odata = odata;
         this.edm = edm;
         this.manager = new TransactionalEntityManager(edm);
-        this.prepopulatedData = new PrepopulatedData(manager);
         this.util = new StorageUtil(this);
 
-        final List<Entity> productList = manager.getEntityCollection(Products.NAME);
+        final List<Entity> productList = manager.getEntityCollection(ODataEntity.PRODUCT.getEsName());
 
         // creating some sample data
-        prepopulatedData.initProductSampleData();
-        prepopulatedData.initCategorySampleData();
-        prepopulatedData.initAdvertisementSampleData();
+        initSampleData();
 
         util.linkProductsAndCategories(productList.size());
+    }
+
+    private void initSampleData() {
+        for (ODataEntity entity : ODataEntity.values()) {
+            try {
+                entity.getEntityClass().getMethod("initSampleData", TransactionalEntityManager.class).invoke(null, manager);
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /* PUBLIC FACADE */
@@ -125,7 +133,7 @@ public class Storage {
             final List<Entity> resultEntityList = new ArrayList<>();
 
             // Loop over all categories and check how many products are linked
-            for (final Entity category : manager.getEntityCollection(Category.ES_NAME)) {
+            for (final Entity category : manager.getEntityCollection(ODataEntity.CATEGORY.getEsName())) {
                 final EntityCollection products = getRelatedEntityCollection(category, DemoEdmProvider.NAV_TO_PRODUCTS);
                 if (products.getEntities().size() == amount) {
                     resultEntityList.add(category);
@@ -150,13 +158,14 @@ public class Storage {
         manager.clear();
 
         // Create new sample data
-        prepopulatedData.initProductSampleData();
-        prepopulatedData.initCategorySampleData();
+        initSampleData();
 
-        final List<Entity> productList = manager.getEntityCollection(Products.NAME);
-        final List<Entity> categoryList = manager.getEntityCollection(Category.ES_NAME);
+        final List<Entity> productList = manager.getEntityCollection(ODataEntity.PRODUCT.getEsName());
+        final List<Entity> categoryList = manager.getEntityCollection(ODataEntity.CATEGORY.getEsName());
 
         // Truncate the lists
+        // this is done only when Reset action is called with Amount parameter
+        // not refactored in any way
         if (amount < productList.size()) {
             final List<Entity> newProductList = new ArrayList<>(productList.subList(0, amount));
             productList.clear();
@@ -172,14 +181,10 @@ public class Storage {
         util.linkProductsAndCategories(amount);
     }
 
-    public EntityCollection readEntitySetData(EdmEntitySet edmEntitySet) throws ODataApplicationException {
+    public EntityCollection readEntitySetData(EdmEntitySet edmEntitySet) {
 
-        if (edmEntitySet.getName().equals(Products.NAME)) {
-            return util.getEntityCollection(manager.getEntityCollection(Products.NAME));
-        } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
-            return util.getEntityCollection(manager.getEntityCollection(Category.ES_NAME));
-        } else if (edmEntitySet.getName().equals(Advertisement.ES_NAME)) {
-            return util.getEntityCollection(manager.getEntityCollection(Advertisement.ES_NAME));
+        if (isOneOfKnownEntities(edmEntitySet)) {
+            return util.getEntityCollection(manager.getEntityCollection(edmEntitySet.getName()));
         }
 
         return null;
@@ -187,15 +192,10 @@ public class Storage {
 
     public Entity readEntityData(EdmEntitySet edmEntitySet, List<UriParameter> keyParams)
         throws ODataApplicationException {
-
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-        if (edmEntitySet.getName().equals(Products.NAME)) {
-            return util.getEntity(edmEntityType, keyParams, manager.getEntityCollection(Products.NAME));
-        } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
-            return util.getEntity(edmEntityType, keyParams, manager.getEntityCollection(Category.ES_NAME));
-        } else if (edmEntitySet.getName().equals(Advertisement.ES_NAME)) {
-            return util.getEntity(edmEntityType, keyParams, manager.getEntityCollection(Advertisement.ES_NAME));
+        if (isOneOfKnownEntities(edmEntitySet)) {
+            return util.getEntity(edmEntityType, keyParams, manager.getEntityCollection(edmEntitySet.getName()));
         }
 
         return null;
@@ -228,17 +228,16 @@ public class Storage {
 
     public Entity createEntityData(EdmEntitySet edmEntitySet, Entity entityToCreate, String rawServiceUri)
         throws ODataApplicationException {
-
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-        if (edmEntitySet.getName().equals(Products.NAME)) {
-            return util.createEntity(edmEntitySet, edmEntityType, entityToCreate,
-                manager.getEntityCollection(Products.NAME), rawServiceUri);
-        } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
-            return util.createEntity(edmEntitySet, edmEntityType, entityToCreate,
-                manager.getEntityCollection(Category.ES_NAME), rawServiceUri);
-        }
+        List<ODataEntity> nonMediaEntities = Arrays.stream(ODataEntity.values()).filter(entity -> !entity.isMediaType()).collect(Collectors.toList());
 
+        for (ODataEntity entity: nonMediaEntities) {
+            if (edmEntitySet.getName().equals(entity.getEsName())) {
+                return util.createEntity(edmEntitySet, edmEntityType, entityToCreate,
+                    manager.getEntityCollection(entity.getEsName()), rawServiceUri);
+            }
+        }
         return null;
     }
 
@@ -250,30 +249,28 @@ public class Storage {
 
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-        if (edmEntitySet.getName().equals(Products.NAME)) {
+        if (isOneOfKnownEntities(edmEntitySet)) {
             util.updateEntity(edmEntityType, keyParams, updateEntity, httpMethod,
-                manager.getEntityCollection(Products.NAME));
-        } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
-            util.updateEntity(edmEntityType, keyParams, updateEntity, httpMethod,
-                manager.getEntityCollection(Category.ES_NAME));
-        } else if (edmEntitySet.getName().equals(Advertisement.ES_NAME)) {
-            util.updateEntity(edmEntityType, keyParams, updateEntity, httpMethod,
-                manager.getEntityCollection(Advertisement.ES_NAME));
+                manager.getEntityCollection(edmEntitySet.getName()));
         }
     }
 
     public void deleteEntityData(EdmEntitySet edmEntitySet, List<UriParameter> keyParams)
         throws ODataApplicationException {
-
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
 
-        if (edmEntitySet.getName().equals(Products.NAME)) {
-            util.deleteEntity(edmEntityType, keyParams, manager.getEntityCollection(Products.NAME));
-        } else if (edmEntitySet.getName().equals(Category.ES_NAME)) {
-            util.deleteEntity(edmEntityType, keyParams, manager.getEntityCollection(Category.ES_NAME));
-        } else if (edmEntitySet.getName().equals(Advertisement.ES_NAME)) {
-            util.deleteEntity(edmEntityType, keyParams, manager.getEntityCollection(Advertisement.ES_NAME));
+        if (isOneOfKnownEntities(edmEntitySet)) {
+            util.deleteEntity(edmEntityType, keyParams, manager.getEntityCollection(edmEntitySet.getName()));
         }
+    }
+
+    private boolean isOneOfKnownEntities(EdmEntitySet edmEntitySet) {
+        for (ODataEntity entity : ODataEntity.values()) {
+            if (edmEntitySet.getName().equals(entity.getEsName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public byte[] readMedia(final Entity entity) {
@@ -299,7 +296,7 @@ public class Storage {
             entity.setMediaContentType(mediaContentType);
             entity.addProperty(new Property(null, Advertisement.MEDIA_PROPERTY_NAME, ValueType.PRIMITIVE, data));
 
-            manager.getEntityCollection(Advertisement.ES_NAME).add(entity);
+            manager.getEntityCollection(ODataEntity.ADVERTISEMENT.getEsName()).add(entity);
         }
 
         return entity;
