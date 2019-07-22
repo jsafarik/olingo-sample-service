@@ -32,9 +32,9 @@ import org.apache.olingo.commons.api.edm.EdmEntitySet;
 
 public class TransactionalEntityManager {
 
-    private Map<String, List<Entity>> entities = new HashMap<String, List<Entity>>();
-    private Map<String, List<Entity>> backupEntities = new HashMap<String, List<Entity>>();
-    private Map<String, IdentityHashMap<Entity, Entity>> copyMap = new HashMap<String, IdentityHashMap<Entity, Entity>>();
+    private Map<String, List<Entity>> entities = new HashMap<>();
+    private Map<String, List<Entity>> backupEntities = new HashMap<>();
+    private Map<String, IdentityHashMap<Entity, Entity>> copyMap = new HashMap<>();
     private boolean isInTransaction = false;
     private Edm edm;
 
@@ -44,7 +44,7 @@ public class TransactionalEntityManager {
 
     public List<Entity> getEntityCollection(final String entitySetName) {
         if (!entities.containsKey(entitySetName)) {
-            entities.put(entitySetName, new ArrayList<Entity>());
+            entities.put(entitySetName, new ArrayList<>());
         }
 
         return entities.get(entitySetName);

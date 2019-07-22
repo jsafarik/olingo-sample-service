@@ -38,6 +38,9 @@ import org.apache.olingo.server.api.uri.UriParameter;
 import org.apache.olingo.server.api.uri.UriResource;
 import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Util {
   
   public static EdmEntitySet getEdmEntitySet(UriInfoResource uriInfo) throws ODataApplicationException {
@@ -82,10 +85,15 @@ public class Util {
       String keyName = key.getName();
       String keyText = key.getText();
 
+      if (keyText.startsWith("'") && keyText.endsWith("'")) {
+        keyText = keyText.substring(1, keyText.length()-1);
+      }
+
       // note: below line doesn't consider: keyProp can be part of a complexType in V4
       // in such case, it would be required to access it via getKeyPropertyRef()
       // but since this isn't the case in our model, we ignore it in our implementation
       EdmProperty edmKeyProperty = (EdmProperty) edmEntityType.getProperty(keyName);
+
       // Edm: we need this info for the comparison below
       Boolean isNullable = edmKeyProperty.isNullable();
       Integer maxLength = edmKeyProperty.getMaxLength();
@@ -109,13 +117,13 @@ public class Util {
         valueAsString = edmPrimitiveType.valueToString(valueObject, isNullable,
             maxLength, precision, scale, isUnicode);
       } catch (EdmPrimitiveTypeException e) {
+        e.printStackTrace();
         return false; // TODO proper Exception handling
       }
 
       if (valueAsString == null) {
         return false;
       }
-
       boolean matches = valueAsString.equals(keyText);
       // if any of the key properties is not found in the entity, we don't need to search further
       if (!matches) {

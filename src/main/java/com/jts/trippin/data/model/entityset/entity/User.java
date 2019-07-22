@@ -1,30 +1,34 @@
 package com.jts.trippin.data.model.entityset.entity;
 
-import com.jts.trippin.data.TransactionalEntityManager;
-import com.jts.trippin.data.model.AbstractEntity;
-import com.jts.trippin.data.model.Util;
-import com.jts.trippin.service.DemoEdmProvider;
-import lombok.AllArgsConstructor;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 
+import com.jts.trippin.data.TransactionalEntityManager;
+import com.jts.trippin.data.model.AbstractEntity;
+import com.jts.trippin.data.model.Util;
+import com.jts.trippin.service.DemoEdmProvider;
+
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 @AllArgsConstructor
-public class Category extends AbstractEntity {
+public class User extends AbstractEntity {
 
     public final static FullQualifiedName ET_FQN
-            = new FullQualifiedName(DemoEdmProvider.NAMESPACE, Category.class.getSimpleName());
+        = new FullQualifiedName(DemoEdmProvider.NAMESPACE, User.class.getSimpleName());
 
     private Entity entity;
 
-    public Category(int id, String name){
+    public User(String id, String firstName, String lastName, int gender){
         this.entity = new Entity();
 
         entity.addProperty(new Property(null, "ID", ValueType.PRIMITIVE, id));
-        entity.addProperty(new Property(null, "Name", ValueType.PRIMITIVE, name));
+        entity.addProperty(new Property(null, "FirstName", ValueType.PRIMITIVE, firstName));
+        entity.addProperty(new Property(null, "LastName", ValueType.PRIMITIVE, lastName));
+        entity.addProperty(new Property(null, "Gender", ValueType.ENUM, gender));
 
         entity.setType(ET_FQN.getFullQualifiedNameAsString());
         entity.setId(Util.createId(this));
@@ -37,7 +41,7 @@ public class Category extends AbstractEntity {
 
     @Override
     public String getEsName() {
-        return ODataEntity.CATEGORY.getEsName();
+        return ODataEntity.USER.getEsName();
     }
 
     @Override
@@ -51,10 +55,9 @@ public class Category extends AbstractEntity {
     }
 
     public static void initSampleData(TransactionalEntityManager manager) {
-        final List<Entity> categoryList = manager.getEntityCollection(ODataEntity.CATEGORY.getEsName());
-        categoryList.add(new Category(0, "Notebooks").getEntity());
-        categoryList.add(new Category(1, "Organizers").getEntity());
-        categoryList.add(new Category(2, "Monitors").getEntity());
+        final List<Entity> userList = manager.getEntityCollection(ODataEntity.USER.getEsName());
+        userList.add(new User("coolBob", "Bob", "CoolName", 0).getEntity());
+        userList.add(new User("whatever", "Frank", "Nobody", 2).getEntity());
     }
 
 }

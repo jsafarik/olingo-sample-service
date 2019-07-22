@@ -24,7 +24,9 @@ import java.util.Locale;
 
 import com.jts.trippin.data.Storage;
 import com.jts.trippin.util.Util;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.olingo.commons.api.data.ContextURL;
 import org.apache.olingo.commons.api.data.ContextURL.Suffix;
 import org.apache.olingo.commons.api.data.Entity;
@@ -81,8 +83,8 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
 
     @Override
     public void readEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat)
-            throws ODataApplicationException, SerializerException {
-
+        throws ODataApplicationException, SerializerException {
+        log.info("readEntity");
         // The sample service supports only functions imports and entity sets.
         // We do not care (yet?) about bound functions and composable functions.
 
@@ -98,18 +100,8 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
             default:
                 log.error("Only entity sets and function imports are supported");
                 throw new ODataApplicationException("Only Entity Sets and Function Imports are supported",
-                        HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
         }
-
-//        if (uriResource instanceof UriResourceEntitySet) {
-//            readEntityInternal(request, response, uriInfo, responseFormat);
-//        } else if (uriResource instanceof UriResourceFunction) {
-//            readFunctionImportInternal(request, response, uriInfo, responseFormat);
-//        } else {
-//            throw new ODataApplicationException("Only EntitySet is supported",
-//                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
-//        }
-
     }
 
     /**
@@ -126,9 +118,9 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
      */
     @Override
     public void createEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo,
-                             ContentType requestFormat, ContentType responseFormat)
-            throws ODataApplicationException, DeserializerException, SerializerException {
-
+        ContentType requestFormat, ContentType responseFormat)
+        throws ODataApplicationException, DeserializerException, SerializerException {
+        log.info("createEntity");
         // 1. Retrieve the entity type from the URI
         EdmEntitySet edmEntitySet = Util.getEdmEntitySet(uriInfo);
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
@@ -146,7 +138,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
             createdEntity = storage.createEntityData(edmEntitySet, requestEntity, request.getRawBaseUri());
             storage.commitTransaction();
         } catch (ODataApplicationException e) {
-            storage.rollbackTranscation();
+            storage.rollbackTransaction();
             throw e;
         }
 
@@ -161,7 +153,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
 
         // 4. configure the response object
         final String location = request.getRawBaseUri() + '/'
-                + odata.createUriHelper().buildCanonicalURL(edmEntitySet, createdEntity);
+            + odata.createUriHelper().buildCanonicalURL(edmEntitySet, createdEntity);
 
         response.setHeader(HttpHeader.LOCATION, location);
         response.setContent(serializedResponse.getContent());
@@ -171,9 +163,9 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
 
     @Override
     public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo,
-                             ContentType requestFormat, ContentType responseFormat)
-            throws ODataApplicationException, DeserializerException, SerializerException {
-
+        ContentType requestFormat, ContentType responseFormat)
+        throws ODataApplicationException, DeserializerException, SerializerException {
+        log.info("updateEntity");
         // 1. Retrieve the entity set which belongs to the requested entity
         List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
 
@@ -201,8 +193,8 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
 
     @Override
     public void deleteEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo)
-            throws ODataApplicationException {
-
+        throws ODataApplicationException {
+        log.info("deleteEntity");
         // 1. Retrieve the entity set which belongs to the requested entity
         List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
         // Note: only in our example we can assume that the first segment is the EntitySet
@@ -221,8 +213,8 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
 
     @Override
     public void readMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat)
-            throws ODataApplicationException, ODataLibraryException {
-
+        throws ODataApplicationException, ODataLibraryException {
+        log.info("readMediaEntity");
         final UriResource firstResoucePart = uriInfo.getUriResourceParts().get(0);
         if (firstResoucePart instanceof UriResourceEntitySet) {
             final EdmEntitySet edmEntitySet = Util.getEdmEntitySet(uriInfo);
@@ -231,7 +223,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
             final Entity entity = storage.readEntityData(edmEntitySet, uriResourceEntitySet.getKeyPredicates());
             if (entity == null) {
                 throw new ODataApplicationException("Product not found", HttpStatusCode.NOT_FOUND.getStatusCode(),
-                        Locale.ENGLISH);
+                    Locale.ENGLISH);
             }
 
             final byte[] mediaContent = storage.readMedia(entity);
@@ -242,28 +234,28 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
             response.setHeader(HttpHeader.CONTENT_TYPE, entity.getMediaContentType());
         } else {
             throw new ODataApplicationException("Not implemented", HttpStatusCode.BAD_REQUEST.getStatusCode(),
-                    Locale.ENGLISH);
+                Locale.ENGLISH);
         }
     }
 
     @Override
     public void createMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo,
-                                  ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-
+        ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+        log.info("createMediaEntity");
         final EdmEntitySet edmEntitySet = Util.getEdmEntitySet(uriInfo);
         final byte[] mediaContent = odata.createFixedFormatDeserializer().binary(request.getBody());
 
         final Entity entity = storage.createMediaEntity(edmEntitySet.getEntityType(),
-                requestFormat.toContentTypeString(),
-                mediaContent);
+            requestFormat.toContentTypeString(),
+            mediaContent);
 
         final ContextURL contextUrl = ContextURL.with().entitySet(edmEntitySet).suffix(Suffix.ENTITY).build();
         final EntitySerializerOptions opts = EntitySerializerOptions.with().contextURL(contextUrl).build();
         final SerializerResult serializerResult = odata.createSerializer(responseFormat).entity(serviceMetadata,
-                edmEntitySet.getEntityType(), entity, opts);
+            edmEntitySet.getEntityType(), entity, opts);
 
         final String location = request.getRawBaseUri() + '/'
-                + odata.createUriHelper().buildCanonicalURL(edmEntitySet, entity);
+            + odata.createUriHelper().buildCanonicalURL(edmEntitySet, entity);
         response.setContent(serializerResult.getContent());
         response.setStatusCode(HttpStatusCode.CREATED.getStatusCode());
         response.setHeader(HttpHeader.LOCATION, location);
@@ -272,8 +264,8 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
 
     @Override
     public void updateMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo,
-                                  ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-
+        ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+        log.info("updateMediaEntity");
         final UriResource firstResoucePart = uriInfo.getUriResourceParts().get(0);
         if (firstResoucePart instanceof UriResourceEntitySet) {
             final EdmEntitySet edmEntitySet = Util.getEdmEntitySet(uriInfo);
@@ -282,7 +274,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
             final Entity entity = storage.readEntityData(edmEntitySet, uriResourceEntitySet.getKeyPredicates());
             if (entity == null) {
                 throw new ODataApplicationException("Product not found", HttpStatusCode.NOT_FOUND.getStatusCode(),
-                        Locale.ENGLISH);
+                    Locale.ENGLISH);
             }
 
             final byte[] mediaContent = odata.createFixedFormatDeserializer().binary(request.getBody());
@@ -291,14 +283,14 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
             response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
         } else {
             throw new ODataApplicationException("Not implemented", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
-                    Locale.ENGLISH);
+                Locale.ENGLISH);
         }
     }
 
     @Override
     public void deleteMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo)
-            throws ODataApplicationException, ODataLibraryException {
-
+        throws ODataApplicationException, ODataLibraryException {
+        log.info("deleteMediaEntity");
         /*
          * In this tutorial, the content of the media entity is stored in a special property.
          * So no additional steps to delete the content of the media entity are necessary.
@@ -325,7 +317,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     }
 
     private void readFunctionImportInternal(final ODataRequest request, final ODataResponse response,
-                                            final UriInfo uriInfo, final ContentType responseFormat) throws ODataApplicationException, SerializerException {
+        final UriInfo uriInfo, final ContentType responseFormat) throws ODataApplicationException, SerializerException {
 
         // 1st step: Analyze the URI and fetch the entity returned by the function import
         // Function Imports are always the first segment of the resource path
@@ -334,8 +326,8 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
         if (!(firstSegment instanceof UriResourceFunction)) {
             log.error("First segment of resource path is not a function import (UriResourceFunction)");
             throw new ODataApplicationException("Only EntitySet or Function Import is supported as first segment of URI",
-                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
-                    Locale.ENGLISH);
+                HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
+                Locale.ENGLISH);
         }
 
         final UriResourceFunction uriResourceFunction = (UriResourceFunction) firstSegment;
@@ -360,8 +352,8 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     }
 
     private void readEntityInternal(ODataRequest request, ODataResponse response, UriInfo uriInfo,
-                                    ContentType responseFormat)
-            throws ODataApplicationException, SerializerException {
+        ContentType responseFormat)
+        throws ODataApplicationException, SerializerException {
 
         Entity responseEntity = null; // required for serialization of the response body
         EdmEntitySet responseEdmEntitySet = null; // we need this for building the contextUrl
@@ -374,8 +366,8 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
         if (!(uriResource instanceof UriResourceEntitySet)) {
             log.error("First segment of resource path is not an entity set (UriResourceEntitySet)");
             throw new ODataApplicationException("First segment of resource path is not an entity set",
-                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
-                    Locale.ENGLISH);
+                HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(),
+                Locale.ENGLISH);
         }
 
         UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) uriResource;
@@ -434,16 +426,16 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
         // we need the property names of the $select, in order to build the context URL
         String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, expandOption, selectOption);
         ContextURL contextUrl = ContextURL.with().entitySet(responseEdmEntitySet)
-                .selectList(selectList)
-                .suffix(Suffix.ENTITY).build();
+            .selectList(selectList)
+            .suffix(Suffix.ENTITY).build();
 
         // make sure that $expand and $select are considered by the serializer
         // adding the selectOption to the serializerOpts will actually tell the lib to do the job
         EntitySerializerOptions opts = EntitySerializerOptions.with()
-                .contextURL(contextUrl)
-                .select(selectOption)
-                .expand(expandOption)
-                .build();
+            .contextURL(contextUrl)
+            .select(selectOption)
+            .expand(expandOption)
+            .build();
 
         ODataSerializer serializer = this.odata.createSerializer(responseFormat);
         SerializerResult serializerResult = serializer.entity(serviceMetadata, edmEntityType, responseEntity, opts);
@@ -455,26 +447,24 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     }
 
     private void validateNestedExpxandSystemQueryOptions(final ExpandOption expandOption)
-            throws ODataApplicationException {
+        throws ODataApplicationException {
         if (expandOption == null) {
             return;
         }
 
         for (final ExpandItem item : expandOption.getExpandItems()) {
             if (item.getCountOption() != null
-                    || item.getFilterOption() != null
-                    || item.getLevelsOption() != null
-                    || item.getOrderByOption() != null
-                    || item.getSearchOption() != null
-                    || item.getSelectOption() != null
-                    || item.getSkipOption() != null
-                    || item.getTopOption() != null) {
+                || item.getFilterOption() != null
+                || item.getLevelsOption() != null
+                || item.getOrderByOption() != null
+                || item.getSearchOption() != null
+                || item.getSelectOption() != null
+                || item.getSkipOption() != null
+                || item.getTopOption() != null) {
 
                 throw new ODataApplicationException("Nested expand system query options are not implemented",
-                        HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
             }
         }
     }
-
-
 }

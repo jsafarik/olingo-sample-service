@@ -123,7 +123,7 @@ public class DemoBatchProcessor implements BatchProcessor {
           responses.add(response);
         } else {
           // Something went wrong. Undo all previous requests in this Change Set
-          storage.rollbackTranscation();
+          storage.rollbackTransaction();
           
           /*
            * In addition the response must be provided as follows:
@@ -150,12 +150,12 @@ public class DemoBatchProcessor implements BatchProcessor {
       
     } catch(ODataApplicationException e) {
       // See below
-      storage.rollbackTranscation();
+      storage.rollbackTransaction();
       throw e;
     } catch(ODataLibraryException e) {
       // The request is malformed or the processor implementation is not correct.
       // Throwing an exception will stop the whole batch request not only the change set!
-      storage.rollbackTranscation();
+      storage.rollbackTransaction();
       throw e;
     }
   }

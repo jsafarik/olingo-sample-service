@@ -1,5 +1,6 @@
 package com.jts.trippin.data.model.entityset.entity;
 
+import com.jts.trippin.data.TransactionalEntityManager;
 import com.jts.trippin.data.model.AbstractEntity;
 import com.jts.trippin.data.model.Util;
 import com.jts.trippin.service.DemoEdmProvider;
@@ -11,6 +12,7 @@ import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.format.ContentType;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -25,7 +27,6 @@ public class Advertisement extends AbstractEntity {
     public final static FullQualifiedName ET_FQN
             = new FullQualifiedName(DemoEdmProvider.NAMESPACE, Advertisement.class.getSimpleName());
 
-    public static final String ES_NAME = "Advertisements";
     private Entity entity;
 
     public Advertisement(UUID id, String name, Timestamp AirDate, byte[] media) {
@@ -48,16 +49,31 @@ public class Advertisement extends AbstractEntity {
 
     @Override
     public String getEsName() {
-        return ES_NAME;
+        return ODataEntity.ADVERTISEMENT.getEsName();
     }
 
     @Override
     public Object getId() {
-        return this.entity.getProperty("ID");
+        return this.entity.getProperty("ID").getValue();
     }
 
     @Override
     public Entity getEntity() {
         return this.entity;
     }
+
+    public static void initSampleData(TransactionalEntityManager manager) {
+        final List<Entity> advertisements = manager.getEntityCollection(ODataEntity.ADVERTISEMENT.getEsName());
+
+        advertisements.add(new Advertisement(UUID.fromString("f89dee73-af9f-4cd4-b330-db93c25ff3c7"),
+            "Old School Lemonade Store, Retro Style",
+            Timestamp.valueOf("2012-11-07 00:00:00"),
+            "Advertisement numero uno".getBytes()).getEntity());
+
+        advertisements.add(new Advertisement(UUID.fromString("db2d2186-1c29-4d1e-88ef-a127f521b9c67"),
+            "Early morning start, need coffee",
+            Timestamp.valueOf("2000-02-29 00:00:00"),
+            "Super ad numero dos".getBytes()).getEntity());
+    }
+
 }

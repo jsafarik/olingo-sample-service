@@ -4,7 +4,13 @@ import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.server.api.*;
+import org.apache.olingo.server.api.OData;
+import org.apache.olingo.server.api.ODataApplicationException;
+import org.apache.olingo.server.api.ODataLibraryException;
+import org.apache.olingo.server.api.ODataRequest;
+import org.apache.olingo.server.api.ODataResponse;
+import org.apache.olingo.server.api.ODataServerError;
+import org.apache.olingo.server.api.ServiceMetadata;
 import org.apache.olingo.server.api.etag.ETagHelper;
 import org.apache.olingo.server.api.etag.ServiceMetadataETagSupport;
 import org.apache.olingo.server.api.processor.ErrorProcessor;
@@ -16,6 +22,9 @@ import org.apache.olingo.server.api.uri.UriInfo;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumentProcessor, ErrorProcessor {
 
     protected OData odata;
@@ -29,7 +38,8 @@ public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumen
 
     @Override
     public void readServiceDocument(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-                                    final ContentType requestedContentType) throws ODataApplicationException, ODataLibraryException {
+        final ContentType requestedContentType) throws ODataApplicationException, ODataLibraryException {
+        log.info("readServiceDocument");
         boolean isNotModified = false;
         ServiceMetadataETagSupport eTagSupport = serviceMetadata.getServiceMetadataETagSupport();
         if (eTagSupport != null && eTagSupport.getServiceDocumentETag() != null) {
@@ -38,7 +48,7 @@ public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumen
             // Check if service document has been modified
             ETagHelper eTagHelper = odata.createETagHelper();
             isNotModified = eTagHelper.checkReadPreconditions(eTagSupport.getServiceDocumentETag(), request
-                    .getHeaders(HttpHeader.IF_MATCH), request.getHeaders(HttpHeader.IF_NONE_MATCH));
+                .getHeaders(HttpHeader.IF_MATCH), request.getHeaders(HttpHeader.IF_NONE_MATCH));
         }
 
         // Send the correct response
@@ -59,7 +69,8 @@ public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumen
 
     @Override
     public void readMetadata(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
-                             final ContentType requestedContentType) throws ODataApplicationException, ODataLibraryException {
+        final ContentType requestedContentType) throws ODataApplicationException, ODataLibraryException {
+        log.info("readMetadata");
         boolean isNotModified = false;
         ServiceMetadataETagSupport eTagSupport = serviceMetadata.getServiceMetadataETagSupport();
         if (eTagSupport != null && eTagSupport.getMetadataETag() != null) {
@@ -68,7 +79,7 @@ public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumen
             // Check if metadata document has been modified
             ETagHelper eTagHelper = odata.createETagHelper();
             isNotModified = eTagHelper.checkReadPreconditions(eTagSupport.getMetadataETag(), request
-                    .getHeaders(HttpHeader.IF_MATCH), request.getHeaders(HttpHeader.IF_NONE_MATCH));
+                .getHeaders(HttpHeader.IF_MATCH), request.getHeaders(HttpHeader.IF_NONE_MATCH));
         }
 
         // Send the correct response
@@ -89,8 +100,9 @@ public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumen
 
     @Override
     public void processError(final ODataRequest request, final ODataResponse response,
-                             final ODataServerError serverError,
-                             final ContentType requestedContentType) {
+        final ODataServerError serverError,
+        final ContentType requestedContentType) {
+        log.info("processError");
         try {
             ODataSerializer serializer = odata.createSerializer(requestedContentType);
             response.setContent(serializer.error(serverError).getContent());
@@ -99,11 +111,10 @@ public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumen
         } catch (Exception e) {
             // This should never happen but to be sure we have this catch here to prevent sending a stacktrace to a client.
             String responseContent =
-                    "{\"error\":{\"code\":null,\"message\":\"An unexpected exception occurred during error processing\"}}";
+                "{\"error\":{\"code\":null,\"message\":\"An unexpected exception occurred during error processing\"}}";
             response.setContent(new ByteArrayInputStream(responseContent.getBytes(Charset.forName("utf-8"))));
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode());
             response.setHeader(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_JSON.toContentTypeString());
         }
     }
-
 }
