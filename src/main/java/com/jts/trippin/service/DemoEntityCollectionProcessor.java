@@ -91,7 +91,7 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
     public void readEntityCollection(ODataRequest request, ODataResponse response,
         UriInfo uriInfo, ContentType responseFormat)
         throws ODataApplicationException, SerializerException {
-        log.info("readEntityCollection");
+        log.debug("readEntityCollection");
 
         final UriResource firstResourceSegment = uriInfo.getUriResourceParts().get(0);
 

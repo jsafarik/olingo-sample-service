@@ -39,7 +39,7 @@ public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumen
     @Override
     public void readServiceDocument(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
         final ContentType requestedContentType) throws ODataApplicationException, ODataLibraryException {
-        log.info("readServiceDocument");
+        log.debug("readServiceDocument");
         boolean isNotModified = false;
         ServiceMetadataETagSupport eTagSupport = serviceMetadata.getServiceMetadataETagSupport();
         if (eTagSupport != null && eTagSupport.getServiceDocumentETag() != null) {
@@ -70,7 +70,7 @@ public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumen
     @Override
     public void readMetadata(final ODataRequest request, final ODataResponse response, final UriInfo uriInfo,
         final ContentType requestedContentType) throws ODataApplicationException, ODataLibraryException {
-        log.info("readMetadata");
+        log.debug("readMetadata");
         boolean isNotModified = false;
         ServiceMetadataETagSupport eTagSupport = serviceMetadata.getServiceMetadataETagSupport();
         if (eTagSupport != null && eTagSupport.getMetadataETag() != null) {
@@ -102,7 +102,7 @@ public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumen
     public void processError(final ODataRequest request, final ODataResponse response,
         final ODataServerError serverError,
         final ContentType requestedContentType) {
-        log.info("processError");
+        log.debug("processError");
         try {
             ODataSerializer serializer = odata.createSerializer(requestedContentType);
             response.setContent(serializer.error(serverError).getContent());

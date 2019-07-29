@@ -54,14 +54,14 @@ public class StorageUtil {
         // TODO: Extend to support ID other than int
         if (entity.getType().equals(Product.FQN.getFullQualifiedNameAsString())) {
 
-            log.info("Creating Product with the new Product class");
+            log.debug("Creating Product with the new Product class");
 
             Product product =
                 new Product(newId, (String) entity.getProperty("Name").getValue(), (String) entity.getProperty("Description").getValue());
             newEntity = product.getEntity();
         } else if (entity.getType().equals(Category.ET_FQN.getFullQualifiedNameAsString())) {
 
-            log.info("Creating Category with the new Category class");
+            log.debug("Creating Category with the new Category class");
 
             Category category = new Category(newId, (String) entity.getProperty("Name").getValue());
             newEntity = category.getEntity();

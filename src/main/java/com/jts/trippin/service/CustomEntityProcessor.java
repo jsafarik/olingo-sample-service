@@ -84,7 +84,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     @Override
     public void readEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat)
         throws ODataApplicationException, SerializerException {
-        log.info("readEntity");
+        log.debug("readEntity");
         // The sample service supports only functions imports and entity sets.
         // We do not care (yet?) about bound functions and composable functions.
 
@@ -120,7 +120,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     public void createEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo,
         ContentType requestFormat, ContentType responseFormat)
         throws ODataApplicationException, DeserializerException, SerializerException {
-        log.info("createEntity");
+        log.debug("createEntity");
         // 1. Retrieve the entity type from the URI
         EdmEntitySet edmEntitySet = Util.getEdmEntitySet(uriInfo);
         EdmEntityType edmEntityType = edmEntitySet.getEntityType();
@@ -165,7 +165,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     public void updateEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo,
         ContentType requestFormat, ContentType responseFormat)
         throws ODataApplicationException, DeserializerException, SerializerException {
-        log.info("updateEntity");
+        log.debug("updateEntity");
         // 1. Retrieve the entity set which belongs to the requested entity
         List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
 
@@ -181,6 +181,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
         ODataDeserializer deserializer = this.odata.createDeserializer(requestFormat);
         DeserializerResult result = deserializer.entity(requestInputStream, edmEntityType);
         Entity requestEntity = result.getEntity();
+        log.info("Incoming data for PATCH or PUT request: " + requestEntity.toString());
         // 2.2 do the modification in backend
         List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
         // Note that this updateEntity()-method is invoked for both PUT or PATCH operations
@@ -194,7 +195,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     @Override
     public void deleteEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo)
         throws ODataApplicationException {
-        log.info("deleteEntity");
+        log.debug("deleteEntity");
         // 1. Retrieve the entity set which belongs to the requested entity
         List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
         // Note: only in our example we can assume that the first segment is the EntitySet
@@ -214,7 +215,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     @Override
     public void readMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat)
         throws ODataApplicationException, ODataLibraryException {
-        log.info("readMediaEntity");
+        log.debug("readMediaEntity");
         final UriResource firstResoucePart = uriInfo.getUriResourceParts().get(0);
         if (firstResoucePart instanceof UriResourceEntitySet) {
             final EdmEntitySet edmEntitySet = Util.getEdmEntitySet(uriInfo);
@@ -241,7 +242,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     @Override
     public void createMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo,
         ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-        log.info("createMediaEntity");
+        log.debug("createMediaEntity");
         final EdmEntitySet edmEntitySet = Util.getEdmEntitySet(uriInfo);
         final byte[] mediaContent = odata.createFixedFormatDeserializer().binary(request.getBody());
 
@@ -265,7 +266,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     @Override
     public void updateMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo,
         ContentType requestFormat, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-        log.info("updateMediaEntity");
+        log.debug("updateMediaEntity");
         final UriResource firstResoucePart = uriInfo.getUriResourceParts().get(0);
         if (firstResoucePart instanceof UriResourceEntitySet) {
             final EdmEntitySet edmEntitySet = Util.getEdmEntitySet(uriInfo);
@@ -290,7 +291,7 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
     @Override
     public void deleteMediaEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo)
         throws ODataApplicationException, ODataLibraryException {
-        log.info("deleteMediaEntity");
+        log.debug("deleteMediaEntity");
         /*
          * In this tutorial, the content of the media entity is stored in a special property.
          * So no additional steps to delete the content of the media entity are necessary.
@@ -400,7 +401,6 @@ public class CustomEntityProcessor implements EntityProcessor, MediaEntityProces
             }
         } else {
             // this would be the case for e.g. Products(1)/Category/Products(1)/Category
-            log.info("status code: " + HttpStatusCode.NOT_IMPLEMENTED.getStatusCode());
             throw new ODataApplicationException("Not supported", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH, null, "");
         }
 
