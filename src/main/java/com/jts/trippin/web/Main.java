@@ -25,7 +25,6 @@ public class Main extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
-        log.info("OData service has started");
     }
 
     @Bean
