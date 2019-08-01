@@ -62,7 +62,7 @@ public class DemoPrimitiveProcessor implements PrimitiveProcessor {
     public void readPrimitive(ODataRequest request, ODataResponse response,
         UriInfo uriInfo, ContentType responseFormat)
         throws ODataApplicationException, SerializerException {
-        log.info("readPrimitive");
+        log.debug("readPrimitive");
         // 1. Retrieve info from URI
         // 1.1. retrieve the info about the requested entity set
         List<UriResource> resourceParts = uriInfo.getUriResourceParts();

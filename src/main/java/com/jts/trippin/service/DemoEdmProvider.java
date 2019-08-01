@@ -73,7 +73,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public List<CsdlAction> getActions(final FullQualifiedName actionName) {
-        log.info("getActions");
+        log.debug("getActions");
         if (actionName.equals(ACTION_RESET_FQN)) {
             // It is allowed to overload actions, so we have to provide a list of Actions for each action name
             final List<CsdlAction> actions = new ArrayList<>();
@@ -99,7 +99,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public CsdlActionImport getActionImport(final FullQualifiedName entityContainer, final String actionImportName) {
-        log.info("getActionImport");
+        log.debug("getActionImport");
         if (entityContainer.equals(EntityContainer.CONTAINER)) {
             if (actionImportName.equals(ACTION_RESET_FQN.getName())) {
                 return new CsdlActionImport()
@@ -113,7 +113,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public List<CsdlFunction> getFunctions(final FullQualifiedName functionName) {
-        log.info("getFunctions");
+        log.debug("getFunctions");
         if (functionName.equals(FUNCTION_COUNT_CATEGORIES_FQN)) {
             // It is allowed to overload functions, so we have to provide a list of functions for each function name
             final List<CsdlFunction> functions = new ArrayList<>();
@@ -144,7 +144,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public CsdlFunctionImport getFunctionImport(FullQualifiedName entityContainer, String functionImportName) {
-        log.info("getFunctionImport");
+        log.debug("getFunctionImport");
         if (entityContainer.equals(EntityContainer.CONTAINER)) {
             if (functionImportName.equals(FUNCTION_COUNT_CATEGORIES_FQN.getName())) {
                 return new CsdlFunctionImport()
@@ -160,7 +160,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public CsdlEntityType getEntityType(FullQualifiedName entityTypeName) {
-        log.info("getEntityType");
+        log.debug("getEntityType");
 
         // this method is called for each EntityType that are configured in the Schema
         CsdlEntityType entityType = null;
@@ -255,7 +255,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public CsdlEnumType getEnumType(FullQualifiedName enumTypeName) {
-        log.info("getEnumType");
+        log.debug("getEnumType");
         CsdlEnumType enumType = null;
 
         if (enumTypeName.equals(new FullQualifiedName(NAMESPACE, "Gender"))) {
@@ -263,9 +263,9 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
             enumType.setName("Gender");
             enumType.setMembers(Arrays
                 .asList(
-                    new CsdlEnumMember().setName("MALE"),
-                    new CsdlEnumMember().setName("FEMALE"),
-                    new CsdlEnumMember().setName("UNSPECIFIED")));
+                    new CsdlEnumMember().setName("MALE")/*.setValue("0")*/,
+                    new CsdlEnumMember().setName("FEMALE")/*.setValue("1")*/,
+                    new CsdlEnumMember().setName("UNSPECIFIED")/*.setValue("2")*/));
 
         }
 
@@ -274,7 +274,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public CsdlEntitySet getEntitySet(FullQualifiedName entityContainer, String entitySetName) {
-        log.info("getEntitySet");
+        log.debug("getEntitySet");
 
         CsdlEntitySet entitySet = null;
 
@@ -312,7 +312,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public CsdlEntityContainerInfo getEntityContainerInfo(FullQualifiedName entityContainerName) {
-        log.info("getEntityContainerInfo");
+        log.debug("getEntityContainerInfo");
 
         // This method is invoked when displaying the service document at
         // e.g. http://localhost:8080/DemoService/DemoService.svc
@@ -327,7 +327,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public List<CsdlSchema> getSchemas() {
-        log.info("getSchemas");
+        log.debug("getSchemas");
         // create Schema
         CsdlSchema schema = new CsdlSchema();
         schema.setNamespace(NAMESPACE);
@@ -364,7 +364,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public CsdlEntityContainer getEntityContainer() {
-        log.info("getEntityContainer");
+        log.debug("getEntityContainer");
 
         // create EntitySets
         List<CsdlEntitySet> entitySets = new ArrayList<>();

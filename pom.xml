@@ -50,6 +50,7 @@
 	</build>
 
 	<properties>
+		<tomcat.server>provided</tomcat.server>
 		<javax.version>2.5</javax.version>
 		<odata.version>4.5.0</odata.version>
 		<slf4j.version>1.7.7</slf4j.version>
@@ -74,14 +75,14 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
-			<scope>provided</scope>
+			<scope>${tomcat.server}</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
 			<version>${javax.version}</version>
-			<scope>provided</scope>
+			<scope>${tomcat.server}</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
