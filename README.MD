@@ -39,4 +39,4 @@ There are four entity types:
  - User
  - Advertisement
  
-Category, Product and Advertisement all have ID of type `int`. User has ID of type `String`. There is an Enum type: `Gender` with values: `MALE, FEMALE` and `UNSPECIFIED`.
+Category and Product have ID of type `int`. Advertisement have ID of type `GUID (UUID)` User has ID of type `String`. There is an Enum type: `Gender` with values: `MALE, FEMALE` and `UNSPECIFIED`.
