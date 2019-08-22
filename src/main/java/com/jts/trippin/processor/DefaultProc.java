@@ -1,4 +1,4 @@
-package com.jts.trippin.service;
+package com.jts.trippin.processor;
 
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
@@ -25,7 +25,7 @@ import java.nio.charset.Charset;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class CustomDefaultProcessor implements MetadataProcessor, ServiceDocumentProcessor, ErrorProcessor {
+public class DefaultProc implements MetadataProcessor, ServiceDocumentProcessor, ErrorProcessor {
 
     protected OData odata;
     private ServiceMetadata serviceMetadata;

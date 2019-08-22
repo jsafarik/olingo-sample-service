@@ -1,6 +1,6 @@
 package com.jts.trippin.data.model;
 
-import com.jts.trippin.service.DemoEdmProvider;
+import com.jts.trippin.processor.DemoEdmProvider;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlActionImport;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainer;

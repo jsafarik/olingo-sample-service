@@ -1,6 +1,7 @@
 package com.jts.trippin.data.model.entityset;
 
 import com.jts.trippin.data.model.AbstractEntity;
+import com.jts.trippin.data.model.entityset.entity.Configuration;
 import com.jts.trippin.data.model.entityset.entity.ODataEntity;
 import com.jts.trippin.data.model.entityset.entity.Product;
 import lombok.Getter;
@@ -45,9 +46,9 @@ public class Products {
         return navPropBindingList;
     }
 
-    public void addEntity(String name, String description){
+    public void addEntity(String name, String description, Configuration config){
 
-        Product product = new Product(createId(), name, description);
+        Product product = new Product(createId(), name, description, config);
         this.entities.add(product);
 
     }

@@ -3,7 +3,7 @@ package com.jts.trippin.data.model.entityset.entity;
 import com.jts.trippin.data.TransactionalEntityManager;
 import com.jts.trippin.data.model.AbstractEntity;
 import com.jts.trippin.data.model.Util;
-import com.jts.trippin.service.DemoEdmProvider;
+import com.jts.trippin.processor.DemoEdmProvider;
 import lombok.AllArgsConstructor;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
