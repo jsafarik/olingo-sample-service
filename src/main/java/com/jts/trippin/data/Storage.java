@@ -38,7 +38,7 @@ import org.apache.olingo.server.api.uri.UriResourceNavigation;
 
 import com.jts.trippin.data.model.entityset.entity.Advertisement;
 import com.jts.trippin.data.model.entityset.entity.ODataEntity;
-import com.jts.trippin.service.DemoEdmProvider;
+import com.jts.trippin.processor.DemoEdmProvider;
 import com.jts.trippin.util.Util;
 
 import java.lang.reflect.InvocationTargetException;

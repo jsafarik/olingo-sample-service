@@ -15,7 +15,7 @@ import com.jts.trippin.web.Main;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = Main.class)
-public class ServiceTests {
+public class MetadataTests {
 
     private final String URL = "http://localhost:8080/odata.svc/";
 
@@ -33,6 +33,7 @@ public class ServiceTests {
                 "OData.TripPin.Product",
                 "OData.TripPin.User",
                 "OData.TripPin.Gender",
-                "OData.TripPin.Advertisement");
+                "OData.TripPin.Advertisement",
+                "OData.TripPin.Configuration");
     }
 }

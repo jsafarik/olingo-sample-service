@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.jts.trippin.service;
+package com.jts.trippin.processor;
 
 import org.apache.olingo.commons.api.data.ContextURL;
 import org.apache.olingo.commons.api.data.Entity;
@@ -72,13 +72,13 @@ import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DemoEntityCollectionProcessor implements EntityCollectionProcessor {
+public class EntityCollectionProc implements EntityCollectionProcessor {
 
     private OData odata;
     private ServiceMetadata serviceMetadata;
     private Storage storage;
 
-    public DemoEntityCollectionProcessor(Storage storage) {
+    public EntityCollectionProc(Storage storage) {
         this.storage = storage;
     }
 

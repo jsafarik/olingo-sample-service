@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.jts.trippin.service;
+package com.jts.trippin.processor;
 
 import java.util.Locale;
 import java.util.Map;
@@ -38,12 +38,12 @@ import org.apache.olingo.server.api.uri.UriResourceAction;
 
 import com.jts.trippin.data.Storage;
 
-public class DemoActionProcessor implements ActionVoidProcessor {
+public class ActionProc implements ActionVoidProcessor {
 
   private OData odata;
   private Storage storage;
 
-  public DemoActionProcessor(final Storage storage) {
+  public ActionProc(final Storage storage) {
     this.storage = storage;
   }
 

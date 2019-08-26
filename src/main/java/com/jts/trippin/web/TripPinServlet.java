@@ -26,13 +26,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.jts.trippin.data.Storage;
-import com.jts.trippin.service.CustomDefaultProcessor;
-import com.jts.trippin.service.CustomEntityProcessor;
-import com.jts.trippin.service.DemoActionProcessor;
-import com.jts.trippin.service.DemoBatchProcessor;
-import com.jts.trippin.service.DemoEdmProvider;
-import com.jts.trippin.service.DemoEntityCollectionProcessor;
-import com.jts.trippin.service.DemoPrimitiveProcessor;
+import com.jts.trippin.processor.ComplexProc;
+import com.jts.trippin.processor.DefaultProc;
+import com.jts.trippin.processor.EntityProc;
+import com.jts.trippin.processor.ActionProc;
+import com.jts.trippin.processor.BatchProc;
+import com.jts.trippin.processor.DemoEdmProvider;
+import com.jts.trippin.processor.EntityCollectionProc;
+import com.jts.trippin.processor.PrimitiveProc;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -65,12 +66,13 @@ public class TripPinServlet extends HttpServlet {
     }
 
     private void registerProcessors(ODataHttpHandler handler){
-        handler.register(new DemoEntityCollectionProcessor(storage));
-        handler.register(new CustomEntityProcessor(storage));
-        handler.register(new DemoPrimitiveProcessor(storage));
-        handler.register(new DemoActionProcessor(storage));
-        handler.register(new DemoBatchProcessor(storage));
-        handler.register(new CustomDefaultProcessor());
+        handler.register(new EntityCollectionProc(storage));
+        handler.register(new EntityProc(storage));
+        handler.register(new PrimitiveProc(storage));
+        handler.register(new ActionProc(storage));
+        handler.register(new BatchProc(storage));
+        handler.register(new DefaultProc());
+        handler.register(new ComplexProc(storage));
     }
 
     @Override

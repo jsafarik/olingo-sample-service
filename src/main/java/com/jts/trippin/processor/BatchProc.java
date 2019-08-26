@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.jts.trippin.service;
+package com.jts.trippin.processor;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -39,12 +39,12 @@ import org.apache.olingo.server.api.deserializer.batch.BatchRequestPart;
 import org.apache.olingo.server.api.deserializer.batch.ODataResponsePart;
 import org.apache.olingo.server.api.processor.BatchProcessor;
 
-public class DemoBatchProcessor implements BatchProcessor {
+public class BatchProc implements BatchProcessor {
 
   private OData odata;
   private Storage storage;
 
-  public DemoBatchProcessor(final Storage storage) {
+  public BatchProc(final Storage storage) {
     this.storage = storage;
   }
 

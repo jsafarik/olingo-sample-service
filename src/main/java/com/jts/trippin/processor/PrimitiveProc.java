@@ -1,4 +1,4 @@
-package com.jts.trippin.service;
+package com.jts.trippin.processor;
 
 import org.apache.olingo.commons.api.data.ContextURL;
 import org.apache.olingo.commons.api.data.Entity;
@@ -35,16 +35,17 @@ import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DemoPrimitiveProcessor implements PrimitiveProcessor {
+public class PrimitiveProc implements PrimitiveProcessor {
 
     private OData odata;
     private Storage storage;
     private ServiceMetadata serviceMetadata;
 
-    public DemoPrimitiveProcessor(Storage storage) {
+    public PrimitiveProc(Storage storage) {
         this.storage = storage;
     }
 
+    @Override
     public void init(OData odata, ServiceMetadata serviceMetadata) {
         this.odata = odata;
         this.serviceMetadata = serviceMetadata;

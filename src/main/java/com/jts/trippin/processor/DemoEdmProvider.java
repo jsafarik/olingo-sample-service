@@ -16,13 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.jts.trippin.service;
+package com.jts.trippin.processor;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlAbstractEdmProvider;
 import org.apache.olingo.commons.api.edm.provider.CsdlAction;
 import org.apache.olingo.commons.api.edm.provider.CsdlActionImport;
+import org.apache.olingo.commons.api.edm.provider.CsdlComplexType;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainer;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityContainerInfo;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
@@ -173,6 +174,9 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
                 .setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());
             CsdlProperty description = new CsdlProperty().setName("Description")
                 .setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());
+            CsdlProperty configuration = new CsdlProperty().setName("Configuration")
+                .setType(new FullQualifiedName(NAMESPACE, "Configuration"));
+
 
             // create PropertyRef for Key element
             CsdlPropertyRef propertyRef = new CsdlPropertyRef();
@@ -187,7 +191,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
             // configure EntityType
             entityType = new CsdlEntityType();
             entityType.setName(Product.FQN.getName());
-            entityType.setProperties(Arrays.asList(id, name, description));
+            entityType.setProperties(Arrays.asList(id, name, description, configuration));
             entityType.setKey(Arrays.asList(propertyRef));
             entityType.setNavigationProperties(navPropList);
         } else if (entityTypeName.equals(Category.ET_FQN)) {
@@ -263,13 +267,34 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
             enumType.setName("Gender");
             enumType.setMembers(Arrays
                 .asList(
-                    new CsdlEnumMember().setName("MALE")/*.setValue("0")*/,
-                    new CsdlEnumMember().setName("FEMALE")/*.setValue("1")*/,
-                    new CsdlEnumMember().setName("UNSPECIFIED")/*.setValue("2")*/));
+                    new CsdlEnumMember().setName("MALE").setValue("0"),
+                    new CsdlEnumMember().setName("FEMALE").setValue("1"),
+                    new CsdlEnumMember().setName("UNSPECIFIED").setValue("2")));
 
         }
 
         return enumType;
+    }
+
+    @Override
+    public CsdlComplexType getComplexType(FullQualifiedName complexTypeName) {
+        log.debug("getComplexType");
+        CsdlComplexType complexType = null;
+
+        if (complexTypeName.equals(new FullQualifiedName(NAMESPACE, "Configuration"))) {
+            complexType = new CsdlComplexType();
+
+            CsdlProperty cpu = new CsdlProperty().setName("CPU")
+                .setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());
+            CsdlProperty gpu = new CsdlProperty().setName("GPU")
+                .setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());
+            CsdlProperty ram = new CsdlProperty().setName("RAM")
+                .setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());
+
+            complexType.setName("Configuration");
+            complexType.setProperties(Arrays.asList(cpu, gpu, ram));
+        }
+        return complexType;
     }
 
     @Override
@@ -332,9 +357,15 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
         CsdlSchema schema = new CsdlSchema();
         schema.setNamespace(NAMESPACE);
 
+        // add EnumTypes
         List<CsdlEnumType> enumTypes = new ArrayList<>();
         enumTypes.add(getEnumType(new FullQualifiedName(NAMESPACE, "Gender")));
         schema.setEnumTypes(enumTypes);
+
+        // add ComplexTypes
+        List<CsdlComplexType> complexTypes = new ArrayList<>();
+        complexTypes.add(getComplexType(new FullQualifiedName(NAMESPACE, "Configuration")));
+        schema.setComplexTypes(complexTypes);
 
         // add EntityTypes
         List<CsdlEntityType> entityTypes = new ArrayList<>();

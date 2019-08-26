@@ -1,6 +1,7 @@
 package com.jts.trippin.data;
 
 import org.apache.olingo.commons.api.Constants;
+import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.data.Link;
@@ -20,6 +21,7 @@ import org.apache.olingo.server.api.uri.UriResourceEntitySet;
 
 import com.jts.trippin.data.model.entityset.entity.Advertisement;
 import com.jts.trippin.data.model.entityset.entity.Category;
+import com.jts.trippin.data.model.entityset.entity.Configuration;
 import com.jts.trippin.data.model.entityset.entity.ODataEntity;
 import com.jts.trippin.data.model.entityset.entity.Product;
 import com.jts.trippin.data.model.entityset.entity.User;
@@ -28,8 +30,10 @@ import com.jts.trippin.util.Util;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,8 +60,26 @@ public class StorageUtil {
 
             log.debug("Creating Product with the new Product class");
 
+            String name = null;
+            String description = null;
+            Configuration config = null;
+            if (entity.getProperty("Configuration") != null){
+                ComplexValue configComplex = (ComplexValue) entity.getProperty("Configuration").getValue();
+                Map<String, String> configMap = new HashMap<>();
+                for (Property property: configComplex.getValue()) {
+                    configMap.put(property.getName(), (String) property.getValue());
+                }
+                config = new Configuration(configMap.get("CPU"), configMap.get("GPU"), configMap.get("RAM"));
+            }
+            if (entity.getProperty("Name") != null) {
+                name = (String) entity.getProperty("Name").getValue();
+            }
+            if (entity.getProperty("Description") != null) {
+                description = (String) entity.getProperty("Description").getValue();
+            }
+
             Product product =
-                new Product(newId, (String) entity.getProperty("Name").getValue(), (String) entity.getProperty("Description").getValue());
+                new Product(newId, name, description, config);
             newEntity = product.getEntity();
         } else if (entity.getType().equals(Category.ET_FQN.getFullQualifiedNameAsString())) {
 

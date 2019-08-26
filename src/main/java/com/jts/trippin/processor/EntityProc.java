@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.jts.trippin.service;
+package com.jts.trippin.processor;
 
 import java.io.InputStream;
 import java.util.List;
@@ -63,13 +63,13 @@ import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 
 @Slf4j
-public class CustomEntityProcessor implements EntityProcessor, MediaEntityProcessor {
+public class EntityProc implements EntityProcessor, MediaEntityProcessor {
 
     private OData odata;
     private ServiceMetadata serviceMetadata;
     private Storage storage;
 
-    public CustomEntityProcessor(Storage storage) {
+    public EntityProc(Storage storage) {
         this.storage = storage;
     }
 
