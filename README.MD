@@ -8,10 +8,10 @@ The standard port of the service is port `8080`. The port can be easily changed 
 
 There are four entity types (with types of their IDs):
 
- - Category (`int`)
- - Product (`int`)
- - User (`String`)
- - Advertisement (`GUID (UUID)`)
+ - Category `(int)`
+ - Product `(int)`
+ - User `(String)`
+ - Advertisement `(GUID (UUID))`
  
 There is an Enum type: `Gender` with values: `MALE, FEMALE` and `UNSPECIFIED` (which are represented by integer values starting from 0).
 
