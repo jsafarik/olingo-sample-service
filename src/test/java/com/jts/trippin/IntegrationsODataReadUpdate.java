@@ -20,6 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.jts.trippin.web.Main;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,17 +51,7 @@ public class IntegrationsODataReadUpdate {
     }
 
     @Test
-    public void wrongDatashape() throws JSONException {
-        readUpdate(2);
-    }
-
-    @Test
-    public void callingNull() throws JSONException {
-        readUpdate(5);
-    }
-
-    @Test
-    public void NPE() throws JSONException {
+    public void wrongDatashapeAndNPE() throws JSONException {
         readUpdate(2);
     }
 
@@ -138,4 +129,34 @@ public class IntegrationsODataReadUpdate {
         log.info("New description is: {}", productEntity.get("Description"));
         assertThat(productEntity.toString()).contains("\"Description\":\"" + name + "\"");
     }
+
+    @Test
+    public void updateComplex() throws JSONException {
+        String entity = "Products(1)";
+
+        JSONObject productEntity = new JSONObject(rest.getForEntity(URL + entity, String.class).getBody());
+        String ram = (String) ((JSONObject) productEntity.get("Configuration")).get("RAM");
+        String cpu = (String) ((JSONObject) productEntity.get("Configuration")).get("CPU");
+        log.info(productEntity.toString());
+        log.info("Initial RAM was: {}", ram);
+
+        Map<String, Object> product = new HashMap<>();
+        product.put("Configuration", Collections.singletonMap("GPU", ram));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        ResponseEntity<String> response =
+            rest.exchange(URL + entity, HttpMethod.PATCH, new HttpEntity<>(new JSONObject(product).toString(), headers), String.class);
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        // PATCH doesn't return the updated entity, have to read it again to check
+        productEntity = new JSONObject(rest.getForEntity(URL + entity, String.class).getBody());
+        log.info((productEntity).toString());
+        assertThat(productEntity.toString()).contains("\"GPU\":\"" + ram + "\"");
+
+        // Assert that other properties of Complex property have not been changed
+        assertThat(productEntity.toString()).contains("\"CPU\":\"" + cpu + "\"");
+        assertThat(productEntity.toString()).contains("\"RAM\":\"" + ram + "\"");
+    }
+
 }
