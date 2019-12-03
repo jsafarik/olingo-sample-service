@@ -63,10 +63,10 @@ public class StorageUtil {
             String name = null;
             String description = null;
             Configuration config = null;
-            if (entity.getProperty("Configuration") != null){
+            if (entity.getProperty("Configuration") != null) {
                 ComplexValue configComplex = (ComplexValue) entity.getProperty("Configuration").getValue();
                 Map<String, String> configMap = new HashMap<>();
-                for (Property property: configComplex.getValue()) {
+                for (Property property : configComplex.getValue()) {
                     configMap.put(property.getName(), (String) property.getValue());
                 }
                 config = new Configuration(configMap.get("CPU"), configMap.get("GPU"), configMap.get("RAM"));
@@ -217,7 +217,6 @@ public class StorageUtil {
         }
 
         // loop over all properties and replace the values with the values of the given payload
-        // Note: ignoring ComplexType, as we don't have it in our odata model
         List<Property> existingProperties = entity.getProperties();
         for (Property existingProp : existingProperties) {
             String propName = existingProp.getName();
@@ -232,18 +231,35 @@ public class StorageUtil {
             if (updateProperty == null) {
                 // if a property has NOT been added to the request payload
                 // depending on the HttpMethod, our behavior is different
+                // TODO: This type of behavior should be implemented even for Complex type -> possible improvement for future
                 if (httpMethod.equals(HttpMethod.PATCH)) {
                     // as of the OData spec, in case of PATCH, the existing property is not touched
-                    continue; // do nothing
                 } else if (httpMethod.equals(HttpMethod.PUT)) {
                     // as of the OData spec, in case of PUT, the existing property is set to null (or to default value)
                     existingProp.setValue(existingProp.getValueType(), null);
-                    continue;
                 }
+            } else {
+                // change the value of the properties
+                if (updateProperty.isComplex()) {
+                    existingProp.asComplex().getValue().forEach(property -> {
+                        updateProperty.asComplex().getValue().forEach(prop -> log.info(prop.toString()));
+                        property.setValue(
+                            property.getValueType(),
+                            updateProperty
+                                .asComplex()
+                                .getValue()
+                                .stream()
+                                .filter(prop -> prop.getName().equals(property.getName()))
+                                .findFirst()
+                                .orElse(property)
+                                .getValue()
+                        );
+                    });
+                } else {
+                    existingProp.setValue(existingProp.getValueType(), updateProperty.getValue());
+                }
+                log.info("Updated property: {}", updateProperty.toString());
             }
-
-            // change the value of the properties
-            existingProp.setValue(existingProp.getValueType(), updateProperty.getValue());
         }
     }
 
